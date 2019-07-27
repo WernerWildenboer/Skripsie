@@ -356,5 +356,12 @@ def upload_page():
     return render_template('upload.html', title="Upload Form Example")
 
 
+def to_MFCC(audio):
+    """
+    Convert audio to MFCC.
+    """
+    return None
+
+
 if __name__ == '__main__':
     appvar.run()
