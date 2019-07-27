@@ -3,9 +3,10 @@ Semantic description:
 Scripts that navigate routes and direct the user, also
 handels file transfers.
 """
-import flask_login
+
 import os
 import errno
+import flask_login
 from flask import render_template, redirect, url_for,  flash, request, json, Flask, session
 from flask_login import current_user, logout_user, login_required, LoginManager, UserMixin, login_user
 from py2neo import Graph, NodeMatcher, Node, Relationship
@@ -60,21 +61,37 @@ class UserMain(UserMixin):
     """
 
     def __init__(self, id, active=True):
+        """
+        Initializes user.
+        """
         self.id = id
         self.active = active
 
     def is_active(self):
+        """
+        Returns user is active status.
+        """
         # Here you should write whatever the code is
         # that checks the database if your user is active
         return self.active
 
     def is_anonymous(self):
+        """
+        Returns False.
+        """
         return False
 
     def is_authenticated(self):
+        """
+        Returns True.
+        """
         return True
 
     def find_user(self):
+        """
+        Verifies if the entered password the user has entered is the same
+        as the one from the KG db.
+        """
         create_user_cypher = "MATCH (a: User {user_id:'%s' }) RETURN a;" % (
             self.id)
         user_loaded = GRAPH_INIT.run(create_user_cypher).data()
@@ -85,6 +102,9 @@ class UserMain(UserMixin):
         return None
 
     def verify_password(self, password_in):
+        """
+        Retrieves a user from the KG based on the user_id.
+        """
         user = self.find_user()
         if user:
             return bool(bcrypt.check_password_hash(user['a']['password'], password_in))
@@ -231,6 +251,9 @@ def login():
 @appvar.route('/logout')
 @login_required
 def logout():
+    """
+    Logs the user out of the system
+    """
     logout_user()
     return redirect(url_for('index'))
 
@@ -292,11 +315,17 @@ def register():
 @appvar.route('/secret')
 @login_required
 def hidden_page():
+    """
+    Secret page for adventures users.
+    """
     return render_template('secret.html', title="Super Secret",
                            user=current_user)
 
 
 def allowed_file(filename):
+    """
+    Returns extensions of what files are allowed
+    """
     return '.' in filename
     filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
