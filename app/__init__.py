@@ -7,6 +7,8 @@ handels file transfers.
 import os
 import errno
 import flask_login
+import numpy as np
+import librosa
 from flask import render_template, redirect, url_for,  flash, request, json, Flask, session
 from flask_login import current_user, logout_user, login_required, LoginManager, UserMixin, login_user
 from py2neo import Graph, NodeMatcher, Node, Relationship
@@ -153,8 +155,10 @@ def uploadfile():
         file_var = request.files['file']
         audio_path = os.path.join(
             appvar.root_path, "static", "audio", session['username'], file_var.filename)
-        # Creates users dir if it does not exist
+
         session['file_location'] = audio_path
+        session['file_name'] = file_var.filename
+        # Creates users dir if it does not exist
         if not os.path.exists(os.path.dirname(audio_path)):
             try:
                 os.makedirs(os.path.dirname(audio_path))
@@ -176,6 +180,7 @@ def uploadfile():
 
         update_kg_audio(username, image_title, language, file_location)
 
+        to_MFCC(audio_path)
         return redirect(url_for('audio_capturing'))
     # TODO : look at print
     return redirect(url_for('audio_capturing'))
@@ -356,11 +361,44 @@ def upload_page():
     return render_template('upload.html', title="Upload Form Example")
 
 
-def to_MFCC(audio):
+def to_MFCC(audio_file_path):
     """
-    Convert audio to MFCC.
+    Convert audio to MFCC and stores in a matrix.
+    Exports matrix as '.txt'.
     """
-    return None
+    y, sr = librosa.load(audio_file_path)
+    # Let's make and display a mel-scaled power (energy-squared) spectrogram
+    S = librosa.feature.melspectrogram(y, sr=sr, n_mels=128)
+
+    # Convert to log scale (dB). We'll use the peak power (max) as reference.
+    log_S = librosa.power_to_db(S, ref=np.max)
+    # Next, we'll extract the top 13 Mel-frequency cepstral coefficients (MFCCs)
+    mfcc = librosa.feature.mfcc(S=log_S, n_mfcc=13)
+
+    # Let's pad on the first and second deltas while we're at it
+    delta_mfcc = librosa.feature.delta(mfcc)
+    delta2_mfcc = librosa.feature.delta(mfcc, order=2)
+
+    # For future use, we'll stack these together into one matrix
+    # .txt
+    M = np.vstack([mfcc, delta_mfcc, delta2_mfcc])
+
+    mfcc_file_name_txt = 'MFCC_'+session['file_name'][:-4] + '.txt'
+
+    mfcc_path_txt = os.path.join(
+        appvar.root_path, "static", "audio", session['username'], mfcc_file_name_txt)
+    f = open(mfcc_path_txt, "w")
+    np.savetxt(f, M, fmt='%1.10f')
+    f.close()
+
+    # .csv
+    mfcc_file_name_csv = 'MFCC_'+session['file_name'][:-4] + '.csv'
+
+    mfcc_path_csv = os.path.join(
+        appvar.root_path, "static", "audio", session['username'], mfcc_file_name_csv)
+    np.savetxt(mfcc_path_csv, M, delimiter=",")
+
+    return M
 
 
 if __name__ == '__main__':
