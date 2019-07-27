@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css" />
+  <link rel="stylesheet" href="https://www.w3schools.com/lib/w3-theme-blue.css">
+  <!--<link rel="stylesheet" href="https://www.w3schools.com/lib/w3-theme-deep-orange.css">-->
+  <!-- Font -->
+  <style>
+    .w3-myfont {
+      font-family: "Comic Sans MS", cursive, sans-serif;
+    }
+  </style>
+
+  <!-- font-awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.9.0/css/all.css">
+
+  <!-- Title 
+  - Loaded from Flask if title is present-->
+  {% if title %}
+  <title>{{ title }} Non-written languages preservation application</title>
+  {% else %}
+  <title>Non-written languages preservation application</title>
+  {% endif %}
+
+  <!-- jquery -->
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+
+  <script>
+    window.jQuery ||
+      document.write(
+        '<script src="{{ url_for("static", filename="js/jquery-1.10.2.min.js") }}"><\/script>'
+      );
+  </script>
+
+  <script type="text/javascript">
+    // Preload first photo
+    image1 = new Image(574, 434);
+    image1.src = "{{ url_for('static', filename='test_images/image1.jpg') }}";
+  </script>
+  <script src="{{ url_for('static', filename='js/gallery.js') }}" type="text/javascript"></script>
+
+  <!--Sound js-->
+  <script src="{{ url_for('static', filename='js/audio.js') }}" type="text/javascript"></script>
+  <script src="https://cdn.rawgit.com/mattdiamond/Recorderjs/08e7abd9/dist/recorder.js"></script>
+
+  <!--Web sockets-->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
+
+  <!--Javascipt variables-->
+  {% if current_user.is_authenticated %}
+  <script>
+    var username = '{{session.username }}';
+  </script>
+  {% endif %}
+</head>
+
+<body>
+  <div class="w3-bar w3-gray">
+    <!-- Home Button-->
+
+    <a class="w3-bar-item w3-button" href="{{ url_for('index') }}">NWLPA</a>
+    {% if current_user.is_authenticated %}
+    <a class="w3-bar-item w3-button" href="{{ url_for('logout') }}">Logout</a>
+    {% else %}
+    <a class="w3-bar-item w3-button" href="{{ url_for('login') }}">Login</a>
+    {% endif %}
+    <a class="w3-bar-item w3-button" href="{{ url_for('audio_capturing') }}">Audio Capturing</a>
+    <a class="w3-bar-item w3-button" href="#">Doler Sit</a>
+    <a class="w3-bar-item w3-button" href="#">Amit</a>
+    <a href="#" class="w3-bar-item w3-button w3-theme"><i class="fa fa-home"></i></a>
+    {% if current_user.is_authenticated %}
+    <a href="#" class="w3-bar-item w3-button w3-theme w3-left"><label class="w3-myfont" style="top:10px;"
+        id="username">{{session.username }}</label><i class="fa fa-home"></i></a>
+    {% endif %}
+
+  </div>
+  {% with messages = get_flashed_messages() %}
+  {% if messages %}
+  <script>
+    var messages = {{ messages | safe }};
+    for (var i = 0; i < messages.length; i++) {
+      alert(messages[i]);
+    }
+  </script>
+  {% endif %}
+  {% endwith %}
+  <div id="content" class="w3-display-container">
+    {% block content %}{% endblock %}
+  </div>
+  <!--Manage poppers-->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+    integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+    crossorigin="anonymous"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+    integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+    crossorigin="anonymous"></script>
+</body>
+
+</html>

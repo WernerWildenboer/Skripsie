@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Register</h1>
+<form action="{{ url_for('register') }}" method="post" id="reg_form">
+    <div class="reg_container">
+        <p>Please fill in this form to create an account.</p>
+
+        <hr>
+        <label for="Username"><b>Username:</b></label>
+        <input type="text" placeholder="Enter Username" name="username" required>
+        <br><br>
+        <label for="psw"><b>Password:</b></label>
+        <input type="password" placeholder="Enter Password" name="psw" required>
+        <br><br>
+        <label for="email"><b>Email:</b></label>
+        <input type="text" placeholder="Enter Email" name="email" required>
+        <br><br>
+        <label for="email"><b>Gender:</b></label>
+        <div class="w3-container  w3-cell">
+            <p>
+
+                <input class="w3-radio" type="radio" name="gender" value="male" checked>
+                <label>Male</label></p>
+        </div>
+        <div class="w3-container w3-cell">
+            <p>
+                <input class="w3-radio" type="radio" name="gender" value="female">
+                <label>Female</label></p>
+        </div>
+        <div class="w3-container  w3-cell">
+            <p>
+                <input class="w3-radio" type="radio" name="gender" value="Other">
+                <label>Other</label></p>
+        </div>
+        <br><br>
+        <label for="email"><b>Location:</b></label>
+        <input type="text" placeholder="Enter Email" name="location" required>
+        <br><br>
+        <label for="email"><b>Language:</b></label>
+        <input type="text" placeholder="Enter Email" name="language" required>
+        <br><br>
+
+        <label for="email"><b>Age:</b></label>
+        <input type="text" placeholder="Enter Email" name="age" required>
+        <br><br>
+        <hr>
+
+        <button type="submit" class="btn btn-primary" name="register" onclick="">Register</button>
+    </div>
+
+    <div class="container signin">
+        <p>Already have an account? <a href="{{ url_for('login') }}">Sign in</a>.</p>
+    </div>
+
+</form>
+{% endblock %}

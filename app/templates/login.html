@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="w3-container w3-third"></div>
+<div class="w3-container w3-third">
+
+    <div class="w3-card-4">
+        <div claass="w3-cell-middle">
+            <div class="w3-panel  w3-theme">
+                <h1 class="w3-opacity w3-myfont w3-center">Add logo</h1>
+            </div>
+
+            <form class="w3-container" id="loginform" class="form" action="{{ url_for('login') }}" method="post">
+
+                <div class="w3-row w3-section">
+                    <div class="w3-display-container " style="height:15px;">
+                        <label class="w3-myfont">Username</label>
+                        <i style="right:4px;" class="w3-display-right fa fa-user"></i>
+                    </div>
+                </div>
+
+                <div class="w3-col">
+                    <div class="w3-rest">
+                        <input class="w3-input w3-border" name="username" type="text" placeholder="" maxlength="32">
+                    </div>
+                </div>
+                <div class="w3-row w3-section">
+                    <div class="w3-display-container " style="height:25px; top:10px;">
+                        <label class="w3-myfont" style="top:10px;">Password</label>
+                        <i style="right:4px;" class="w3-display-right fas fa-unlock-alt"></i>
+                    </div>
+                </div>
+
+                <div class="w3-col">
+                    <div class=" w3-rest">
+                        <input class="w3-input w3-border" name="password" type="password" placeholder="" maxlength="32">
+                    </div>
+                </div>
+
+
+        </div>
+        <br>
+        <button type="submit" class="w3-button w3-block w3-section w3-theme w3-ripple w3-padding">LOGIN</button>
+        </form>
+        <div class="w3-display-container " style="height:40px;">
+
+            <div class="w3-myfont w3-display-middle">
+                <p class="w3-myfont">New User? <a href="{{ url_for('register') }}">Click to
+                        Register!</a></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
