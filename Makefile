@@ -44,7 +44,6 @@ vscode:
 install:
 	@export PIPENV_VENV_IN_PROJECT=true; \
 	pipenv install; \
-	make update;
 
 update:
 	@pip freeze > requirements.txt; \
@@ -57,9 +56,11 @@ test:
 run:
 	#@pipenv run pytest;
 ifeq ($(OSFLAG),LINUX)
-	@make test; \
-	sudo kill `sudo lsof -t -i:5000`; \
-	pipenv run flask run
+	#@make test; \
+
+	@sudo kill `sudo lsof -t -i:5000`; \
+	pipenv run flask run;
+	
 endif
 ifeq ($(OSFLAG),WIN32)
 	@pipenv run python src\main.py

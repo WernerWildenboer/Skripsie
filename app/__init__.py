@@ -3,12 +3,15 @@ Semantic description:
 Scripts that navigate routes and direct the user, also
 handels file transfers.
 """
+# TODO: Split up in to different files
 
 import os
 import errno
+import uuid
 import flask_login
 import numpy as np
 import librosa
+from werkzeug.utils import secure_filename
 from flask import render_template, redirect, url_for,  flash, request, json, Flask, session
 from flask_login import current_user, logout_user, login_required, LoginManager, UserMixin, login_user
 from py2neo import Graph, NodeMatcher, Node, Relationship
@@ -122,8 +125,9 @@ def load_user(userid):
     return UserMain(userid)
 
 
-@appvar.route('/gallery_json', endpoint='gallery_json2')
-def gallery_json2():
+@appvar.route('/gallery_json', endpoint='gallery_json_end_point')
+# Reason for rename,there was an endpoint probl
+def gallery_json_end_point():
     """
     Semantic description:
         # TODO: step by step description
@@ -180,7 +184,7 @@ def uploadfile():
 
         update_kg_audio(username, image_title, language, file_location)
 
-        to_MFCC(audio_path)
+        to_mfcc(audio_path)
         return redirect(url_for('audio_capturing'))
     # TODO : look at print
     return redirect(url_for('audio_capturing'))
@@ -336,7 +340,13 @@ def allowed_file(filename):
 
 
 @appvar.route('/upload', methods=['GET', 'POST'])
+@login_required
 def upload_page():
+    """
+    Renders upload.html.
+    POST: Uploads a file loaded by the user
+    to the flask backend and stores it.
+    """
     if request.method == "POST":
         if 'file' not in request.files:
             flash("No file attached")
@@ -349,19 +359,34 @@ def upload_page():
             return redirect(request.url)
 
         if file and allowed_file(file.filename):
+
             flash("Successfully uploaded!")
             flash(file.filename)
 
-            # Consider saving the file
-            # fname, ext = os.path.splitext(file.filename)
-            # fname_rand = fname + str(uuid.uuid4()) + ext
-            # filename = secure_filename(fname_rand)
-            # file.save(os.path.join(appvar.config["UPLOAD_FOLDER"], filename))
+            fname, ext = os.path.splitext(file.filename)
+            name_rand = fname + str(uuid.uuid4()) + ext
+            filename = secure_filename(name_rand)
+
+            # TODO: Add album name input
+            album_name = "lotr"
+            # Upload file store location file path
+            uploadfile_path = os.path.join(
+                appvar.root_path, "static", "images", session['username'], album_name, filename)
+            print(uploadfile_path)
+            # Creates users dir if it does not exist
+            if not os.path.exists(os.path.dirname(uploadfile_path)):
+                try:
+                    os.makedirs(os.path.dirname(uploadfile_path))
+                except OSError as exc:  # Guard against race condition
+                    if exc.errno != errno.EEXIST:
+                        raise
+            # Save file
+            file.save(os.path.join(uploadfile_path))
 
     return render_template('upload.html', title="Upload Form Example")
 
 
-def to_MFCC(audio_file_path):
+def to_mfcc(audio_file_path):
     """
     Convert audio to MFCC and stores in a matrix.
     Exports matrix as '.txt'.
@@ -381,14 +406,14 @@ def to_MFCC(audio_file_path):
 
     # For future use, we'll stack these together into one matrix
     # .txt
-    M = np.vstack([mfcc, delta_mfcc, delta2_mfcc])
+    mfcc_matrix = np.vstack([mfcc, delta_mfcc, delta2_mfcc])
 
     mfcc_file_name_txt = 'MFCC_'+session['file_name'][:-4] + '.txt'
 
     mfcc_path_txt = os.path.join(
         appvar.root_path, "static", "audio", session['username'], mfcc_file_name_txt)
     f = open(mfcc_path_txt, "w")
-    np.savetxt(f, M, fmt='%1.10f')
+    np.savetxt(f, mfcc_matrix, fmt='%1.10f')
     f.close()
 
     # .csv
@@ -396,10 +421,11 @@ def to_MFCC(audio_file_path):
 
     mfcc_path_csv = os.path.join(
         appvar.root_path, "static", "audio", session['username'], mfcc_file_name_csv)
-    np.savetxt(mfcc_path_csv, M, delimiter=",")
+    np.savetxt(mfcc_path_csv, mfcc_matrix, delimiter=",")
 
-    return M
+    return mfcc_matrix
 
 
 if __name__ == '__main__':
-    appvar.run()
+    # appvar.run()
+    appvar.run(debug=True)

@@ -65,6 +65,7 @@ WTForms = "==2.1"
 flask-allows = "*"
 numpy = "*"
 librosa = "*"
+uuid = "*"
 
 [requires]
 python_version = "3"

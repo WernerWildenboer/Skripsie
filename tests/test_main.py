@@ -7,6 +7,7 @@ from sys import path
 from pytest import raises
 import numpy as np
 
+
 try:
     # Add the path relative to the root directory.
     # This lets you run tests from the project root,
@@ -65,3 +66,23 @@ def test_neo4j_connect_delete():
 
     # Assertions
     assert not list_test, "Could not connect to Neo4j."
+
+
+def test_login_logout(client):
+    """
+    Tests  login and logout.
+    """
+    rv = login(
+        client, flaskr.app.config['USERNAME'], flaskr.app.config['PASSWORD'])
+    assert b'You were logged in' in rv.data
+
+    rv = logout(client)
+    assert b'You were logged out' in rv.data
+
+    rv = login(
+        client, flaskr.app.config['USERNAME'] + 'x', flaskr.app.config['PASSWORD'])
+    assert b'Invalid username' in rv.data
+
+    rv = login(client, flaskr.app.config['USERNAME'],
+               flaskr.app.config['PASSWORD'] + 'x')
+    assert b'Invalid password' in rv.data
