@@ -31,4 +31,5 @@ coverage.xml
 .vscode
 .pytest_cache
 app/static/audio/*
+app/static/images/*
 .venv
