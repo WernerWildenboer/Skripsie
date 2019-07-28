@@ -3,9 +3,12 @@ Semantic description:
 Scripts that navigate routes and direct the user, also
 handels file transfers.
 """
-import flask_login
+
 import os
 import errno
+import flask_login
+import numpy as np
+import librosa
 from flask import render_template, redirect, url_for,  flash, request, json, Flask, session
 from flask_login import current_user, logout_user, login_required, LoginManager, UserMixin, login_user
 from py2neo import Graph, NodeMatcher, Node, Relationship
@@ -60,21 +63,37 @@ class UserMain(UserMixin):
     """
 
     def __init__(self, id, active=True):
+        """
+        Initializes user.
+        """
         self.id = id
         self.active = active
 
     def is_active(self):
+        """
+        Returns user is active status.
+        """
         # Here you should write whatever the code is
         # that checks the database if your user is active
         return self.active
 
     def is_anonymous(self):
+        """
+        Returns False.
+        """
         return False
 
     def is_authenticated(self):
+        """
+        Returns True.
+        """
         return True
 
     def find_user(self):
+        """
+        Verifies if the entered password the user has entered is the same
+        as the one from the KG db.
+        """
         create_user_cypher = "MATCH (a: User {user_id:'%s' }) RETURN a;" % (
             self.id)
         user_loaded = GRAPH_INIT.run(create_user_cypher).data()
@@ -85,6 +104,9 @@ class UserMain(UserMixin):
         return None
 
     def verify_password(self, password_in):
+        """
+        Retrieves a user from the KG based on the user_id.
+        """
         user = self.find_user()
         if user:
             return bool(bcrypt.check_password_hash(user['a']['password'], password_in))
@@ -133,8 +155,10 @@ def uploadfile():
         file_var = request.files['file']
         audio_path = os.path.join(
             appvar.root_path, "static", "audio", session['username'], file_var.filename)
-        # Creates users dir if it does not exist
+
         session['file_location'] = audio_path
+        session['file_name'] = file_var.filename
+        # Creates users dir if it does not exist
         if not os.path.exists(os.path.dirname(audio_path)):
             try:
                 os.makedirs(os.path.dirname(audio_path))
@@ -156,6 +180,7 @@ def uploadfile():
 
         update_kg_audio(username, image_title, language, file_location)
 
+        to_MFCC(audio_path)
         return redirect(url_for('audio_capturing'))
     # TODO : look at print
     return redirect(url_for('audio_capturing'))
@@ -231,6 +256,9 @@ def login():
 @appvar.route('/logout')
 @login_required
 def logout():
+    """
+    Logs the user out of the system
+    """
     logout_user()
     return redirect(url_for('index'))
 
@@ -292,11 +320,17 @@ def register():
 @appvar.route('/secret')
 @login_required
 def hidden_page():
+    """
+    Secret page for adventures users.
+    """
     return render_template('secret.html', title="Super Secret",
                            user=current_user)
 
 
 def allowed_file(filename):
+    """
+    Returns extensions of what files are allowed
+    """
     return '.' in filename
     filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
@@ -325,6 +359,46 @@ def upload_page():
             # file.save(os.path.join(appvar.config["UPLOAD_FOLDER"], filename))
 
     return render_template('upload.html', title="Upload Form Example")
+
+
+def to_MFCC(audio_file_path):
+    """
+    Convert audio to MFCC and stores in a matrix.
+    Exports matrix as '.txt'.
+    """
+    y, sr = librosa.load(audio_file_path)
+    # Let's make and display a mel-scaled power (energy-squared) spectrogram
+    S = librosa.feature.melspectrogram(y, sr=sr, n_mels=128)
+
+    # Convert to log scale (dB). We'll use the peak power (max) as reference.
+    log_S = librosa.power_to_db(S, ref=np.max)
+    # Next, we'll extract the top 13 Mel-frequency cepstral coefficients (MFCCs)
+    mfcc = librosa.feature.mfcc(S=log_S, n_mfcc=13)
+
+    # Let's pad on the first and second deltas while we're at it
+    delta_mfcc = librosa.feature.delta(mfcc)
+    delta2_mfcc = librosa.feature.delta(mfcc, order=2)
+
+    # For future use, we'll stack these together into one matrix
+    # .txt
+    M = np.vstack([mfcc, delta_mfcc, delta2_mfcc])
+
+    mfcc_file_name_txt = 'MFCC_'+session['file_name'][:-4] + '.txt'
+
+    mfcc_path_txt = os.path.join(
+        appvar.root_path, "static", "audio", session['username'], mfcc_file_name_txt)
+    f = open(mfcc_path_txt, "w")
+    np.savetxt(f, M, fmt='%1.10f')
+    f.close()
+
+    # .csv
+    mfcc_file_name_csv = 'MFCC_'+session['file_name'][:-4] + '.csv'
+
+    mfcc_path_csv = os.path.join(
+        appvar.root_path, "static", "audio", session['username'], mfcc_file_name_csv)
+    np.savetxt(mfcc_path_csv, M, delimiter=",")
+
+    return M
 
 
 if __name__ == '__main__':

@@ -64,6 +64,7 @@ Werkzeug = "==0.14.1"
 WTForms = "==2.1"
 flask-allows = "*"
 numpy = "*"
+librosa = "*"
 
 [requires]
 python_version = "3"
