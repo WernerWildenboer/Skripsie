@@ -180,7 +180,7 @@ $(function () {
       $caption.children(".title").text(photo.title);
       $caption
         .children(".data")
-        .text("Taken on " + photo.date + " in " + photo.location);
+        .text("Taken on " + photo.date + " in " + photo.description);
     }
   }
 

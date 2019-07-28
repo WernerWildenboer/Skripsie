@@ -1,0 +1,23 @@
+{
+"album":{
+    "name": "lotr"
+},
+"photos": [
+{
+    "date": "07/28/2019, 21:50:07",
+    "description": "Hobbit",
+    "id": "1",
+    "thumb_url": "images/werner/lotr/74bffb8ab937853bce9eabd2033456f4e9a9f226-18bd-4bc6-817b-f168fd598199_thumbnail_.jpg",
+    "title": "Frodo",
+    "url": "images/werner/lotr/74bffb8ab937853bce9eabd2033456f4bf478ad2-b17c-434b-bb76-1a82aa4a2f46.jpg"
+},
+{
+    "date": "07/28/2019, 21:50:07",
+    "description": "Wizard",
+    "id": "2",
+    "thumb_url": "images/werner/lotr/e92fc6937ca21c5bb3311cfd137483c0--gandalf-tolkienb0690969-e715-47e7-a28b-604c8c8b3ac5_thumbnail_.jpg",
+    "title": "Gandalf",
+    "url": "images/werner/lotr/e92fc6937ca21c5bb3311cfd137483c0--gandalf-tolkien20c7de4f-65dd-4cfa-98b3-173ffe9e4165.jpg"
+}
+]
+}

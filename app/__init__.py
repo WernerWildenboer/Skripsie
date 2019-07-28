@@ -6,11 +6,14 @@ handels file transfers.
 # TODO: Split up in to different files
 
 import os
+import sys
 import errno
 import uuid
 import flask_login
 import numpy as np
 import librosa
+from PIL import Image
+from resizeimage import resizeimage
 from werkzeug.utils import secure_filename
 from flask import render_template, redirect, url_for,  flash, request, json, Flask, session
 from flask_login import current_user, logout_user, login_required, LoginManager, UserMixin, login_user
@@ -136,7 +139,7 @@ def gallery_json_end_point():
     Gets the json file stored at `appvar.root_path` reads
     the data and returns it.
     """
-    json_path = os.path.join(appvar.root_path, 'gallery_json.js')
+    json_path = os.path.join(appvar.root_path, 'gallery.json')
     gallery_json_var = open(json_path).read()
     return json.dumps(gallery_json_var)
 
@@ -277,6 +280,7 @@ def register():
         user node.
     """
     if request.method == 'POST':
+        # TODO: Add language used and first language
         # User input variables
         username = request.form['username']
         password = request.form['psw']
@@ -344,10 +348,16 @@ def allowed_file(filename):
 def upload_page():
     """
     Renders upload.html.
-    POST: Uploads a file loaded by the user
-    to the flask backend and stores it.
+    POST: GETS uploaded file loaded by the user
+    resizes it and sends it to the backend for storage.
+
     """
     if request.method == "POST":
+         # User input variables
+        album = request.form['album']
+        title_of_image = request.form['title_of_image']
+        description = request.form['description']
+
         if 'file' not in request.files:
             flash("No file attached")
             return redirect(request.url)
@@ -367,12 +377,10 @@ def upload_page():
             name_rand = fname + str(uuid.uuid4()) + ext
             filename = secure_filename(name_rand)
 
-            # TODO: Add album name input
-            album_name = "lotr"
+            album_name = album
             # Upload file store location file path
             uploadfile_path = os.path.join(
                 appvar.root_path, "static", "images", session['username'], album_name, filename)
-            print(uploadfile_path)
             # Creates users dir if it does not exist
             if not os.path.exists(os.path.dirname(uploadfile_path)):
                 try:
@@ -382,6 +390,24 @@ def upload_page():
                         raise
             # Save file
             file.save(os.path.join(uploadfile_path))
+            # Resize image and create thumbnail
+            filename_thumbnail = fname + \
+                str(uuid.uuid4()) + "_thumbnail_" + ext
+            uploadfile_path_thumbnail = os.path.join(
+                appvar.root_path, "static", "images", session['username'], album_name, filename_thumbnail)
+            with Image.open(file) as image:
+                cover = resizeimage.resize_cover(image, [180, 180])
+                cover.save(os.path.join(
+                    uploadfile_path_thumbnail), image.format)
+
+            # TODO: Send to json formatter
+            # To remove leading dir for display
+            uploadfile_path_short = os.path.join(
+                "images", session['username'], album_name, filename)
+            uploadfile_path_thumbnail_short = os.path.join(
+                "images", session['username'], album_name, filename_thumbnail)
+            print(uploadfile_path_short)
+            print(uploadfile_path_thumbnail_short)
 
     return render_template('upload.html', title="Upload Form Example")
 
@@ -427,5 +453,5 @@ def to_mfcc(audio_file_path):
 
 
 if __name__ == '__main__':
-    # appvar.run()
-    appvar.run(debug=True)
+    # appvar.run(debug=True)
+    appvar.run()
