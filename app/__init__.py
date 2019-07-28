@@ -402,6 +402,7 @@ def upload_page():
 
             # TODO: Send to json formatter
             # To remove leading dir for display
+
             uploadfile_path_short = os.path.join(
                 "images", session['username'], album_name, filename)
             uploadfile_path_thumbnail_short = os.path.join(
