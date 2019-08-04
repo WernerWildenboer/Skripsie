@@ -1,0 +1,24 @@
+{% extends "base.html" %} {% block content %}
+
+<div class="w3-container w3-third"></div>
+<div class="w3-container w3-third">
+  <div class="w3-card-4 ">
+    <div class="w3-cell-middle">
+
+      <div class="w3-panel  w3-theme">
+        <h1 class="w3-opacity w3-myfont w3-center ">403 Forbidden</h1>
+      </div>
+      <div class="w3-container">
+        <p class="w3-myfont">You seem to not have permission for this page.</p>
+      </div>
+      <div class="w3-container">
+        <p class="w3-myfont">Try and login : </p>
+      </div>
+      <p><a class="w3-button w3-block w3-section w3-theme w3-ripple w3-padding" href="{{ url_for('login') }}">LOGIN</a>
+      </p>
+
+    </div>
+  </div>
+</div>
+
+{% endblock %}

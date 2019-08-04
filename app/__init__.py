@@ -4,30 +4,51 @@ Scripts that navigate routes and direct the user, also
 handels file transfers.
 """
 # TODO: Split up in to different files
+# TODO: Add abort / error handeling
 
+import datetime
+import errno
 import os
 import sys
-import errno
 import uuid
-import flask_login
-import numpy as np
+
 import librosa
+import numpy as np
+from flask import (
+    Flask,
+    flash,
+    json,
+    redirect,
+    render_template,
+    request,
+    session, url_for
+)
+from flask_bcrypt import Bcrypt
+import flask_login
+from flask_login import (
+    LoginManager,
+    UserMixin,
+    current_user,
+    login_required,
+    login_user, logout_user
+)
 from PIL import Image
+from py2neo import Graph, Node, NodeMatcher, Relationship
 from resizeimage import resizeimage
 from werkzeug.utils import secure_filename
-from flask import render_template, redirect, url_for,  flash, request, json, Flask, session
-from flask_login import current_user, logout_user, login_required, LoginManager, UserMixin, login_user
-from py2neo import Graph, NodeMatcher, Node, Relationship
-from flask_bcrypt import Bcrypt
+
 from config import Config
+
 # from .forms import LoginForm, RegistrationForm
 
 appvar = Flask(__name__)
 appvar.config.from_object(Config)
 appvar.secret_key = 'some_secret'
+# set the port dynamically with a default of 3000 for local development
+port = int(os.getenv('PORT', '3000'))
 
 resource_path = os.path.join(appvar.root_path, 'static')
-appvar.config.from_object(Config)
+
 
 ALLOWED_EXTENSIONS = set(['csv', 'jpg', 'jpeg', 'png'])
 
@@ -38,7 +59,7 @@ login_var.login_view = 'login'
 Set up Neo4j connection.
 """
 
-NEO4J_BOLT = os.environ["NEO4J_BOLT"] if "NEO4J_BOLT" in os.environ else 'bolt://localhost:7687'
+NEO4J_BOLT = os.environ["NEO4J_BOLT"] if "NEO4J_BOLT" in os.environ else 'bolt://localhost:11005'
 NEO4J_USERNAME = os.environ["NEO4J_USERNAME"] if "NEO4J_USERNAME" in os.environ else 'neo4j'
 NEO4J_PASSWORD = os.environ["NEO4J_PASSWORD"] if "NEO4J_PASSWORD" in os.environ else 'skripsie'
 GRAPH_INIT = Graph(NEO4J_BOLT, auth=(NEO4J_USERNAME, NEO4J_PASSWORD))
@@ -279,6 +300,9 @@ def register():
         and sends it to neo4j to create a
         user node.
     """
+    if current_user.is_authenticated:
+        # TODO: Add already logged in page
+        return redirect(url_for('index'))
     if request.method == 'POST':
         # TODO: Add language used and first language
         # User input variables
@@ -287,10 +311,11 @@ def register():
         email = request.form['email']
         gender = request.form['gender']
         location = request.form['location']
-        language = request.form['language']
+        firstlanguage = request.form['firstlanguage']
+        inputlanguage = request.form['inputlanguage']
         age = request.form['age']
         user_id = username.split()[0][0]
-
+        print(gender)
         # User input checks
         # TODO: Change strings
         if len(username) < 5:
@@ -303,7 +328,7 @@ def register():
             flash('Your username must be at least one character.')
         elif len(location) < 1:
             flash('Your username must be at least one character.')
-        elif len(language) < 1:
+        elif len(firstlanguage) < 1:
             flash('Your username must be at least one character.')
         elif len(age) < 1:
             flash('Your username must be at least one character.')
@@ -317,8 +342,9 @@ def register():
             pw_hash_decoded = pw_hash.decode("utf-8")
             pw_hash_cleaned = pw_hash_decoded.replace('\'', '')
 
-            create_user_cypher = "MERGE (a: User {password:'%s',username:'%s',password:'%s',gender:'%s',location:'%s',language:'%s',age:'%s',user_id:'%s' })" % (
-                email, username, pw_hash_cleaned, gender, location, language, age, user_id)
+            create_user_cypher = "MERGE (a: User {password:'%s',username:'%s',password:'%s',gender:'%s',location:'%s',first_language:'%s',input_language:'%s',age:'%s',user_id:'%s' });" % (
+                email, username, pw_hash_cleaned, gender, location, firstlanguage, inputlanguage, age, user_id)
+            print(create_user_cypher)
             GRAPH_INIT.run(create_user_cypher)
             return redirect(url_for('index'))
 
@@ -361,56 +387,122 @@ def upload_page():
         if 'file' not in request.files:
             flash("No file attached")
             return redirect(request.url)
+        i = 0
+        for f in request.files.getlist('file'):
+            i = i+1
+            file = f
+            if file.filename == "":
+                flash("No file attached")
+                return redirect(request.url)
 
-        file = request.files['file']
+            if file and allowed_file(file.filename):
 
-        if file.filename == "":
-            flash("No file attached")
-            return redirect(request.url)
+                fname, ext = os.path.splitext(file.filename)
+                name_rand = str(i)+"_" + title_of_image + \
+                    "_" + fname + str(uuid.uuid4()) + ext
+                filename = secure_filename(name_rand)
 
-        if file and allowed_file(file.filename):
+                album_name = album
+                # Upload file store location file path
+                uploadfile_path = os.path.join(
+                    appvar.root_path, "static", "images", session['username'], album_name, filename)
+                # Creates users dir if it does not exist
+                if not os.path.exists(os.path.dirname(uploadfile_path)):
+                    try:
+                        os.makedirs(os.path.dirname(uploadfile_path))
+                    except OSError as exc:  # Guard against race condition
+                        if exc.errno != errno.EEXIST:
+                            raise
+                # Save file
+                file.save(os.path.join(uploadfile_path))
+                # Resize image and create thumbnail
+                filename_thumbnail = str(i)+"_"+title_of_image+"_" + \
+                    "_thumbnail_" + fname + str(uuid.uuid4()) + ext
+                filename_thumbnail_secure = secure_filename(filename_thumbnail)
 
-            flash("Successfully uploaded!")
-            flash(file.filename)
+                uploadfile_path_thumbnail = os.path.join(
+                    appvar.root_path, "static", "images", session['username'], album_name, filename_thumbnail_secure)
+                with Image.open(file) as image:
+                    cover = resizeimage.resize_cover(image, [180, 180])
+                    cover.save(os.path.join(
+                        uploadfile_path_thumbnail), image.format)
 
-            fname, ext = os.path.splitext(file.filename)
-            name_rand = fname + str(uuid.uuid4()) + ext
-            filename = secure_filename(name_rand)
+                # TODO: Send to json formatter
 
-            album_name = album
-            # Upload file store location file path
-            uploadfile_path = os.path.join(
-                appvar.root_path, "static", "images", session['username'], album_name, filename)
-            # Creates users dir if it does not exist
-            if not os.path.exists(os.path.dirname(uploadfile_path)):
-                try:
-                    os.makedirs(os.path.dirname(uploadfile_path))
-                except OSError as exc:  # Guard against race condition
-                    if exc.errno != errno.EEXIST:
-                        raise
-            # Save file
-            file.save(os.path.join(uploadfile_path))
-            # Resize image and create thumbnail
-            filename_thumbnail = fname + \
-                str(uuid.uuid4()) + "_thumbnail_" + ext
-            uploadfile_path_thumbnail = os.path.join(
-                appvar.root_path, "static", "images", session['username'], album_name, filename_thumbnail)
-            with Image.open(file) as image:
-                cover = resizeimage.resize_cover(image, [180, 180])
-                cover.save(os.path.join(
-                    uploadfile_path_thumbnail), image.format)
+                # Update KG
+                # Clean URL's
+                uploadfile_path_short = os.path.join(
+                    "images", session['username'], album_name, filename)
+                uploadfile_path_thumbnail_short = os.path.join(
+                    "images", session['username'], album_name, filename_thumbnail_secure)
 
-            # TODO: Send to json formatter
-            # To remove leading dir for display
-
-            uploadfile_path_short = os.path.join(
-                "images", session['username'], album_name, filename)
-            uploadfile_path_thumbnail_short = os.path.join(
-                "images", session['username'], album_name, filename_thumbnail)
-            print(uploadfile_path_short)
-            print(uploadfile_path_thumbnail_short)
+                update_kg_image(filename, description, album_name,
+                                uploadfile_path_short, uploadfile_path_thumbnail_short)
 
     return render_template('upload.html', title="Upload Form Example")
+
+# TODO: Shorten
+
+
+def update_kg_image(image_name, description, album, image_location,
+                    image_thumbnail_location):
+    """
+    Returns:
+    Ingests image from user and updates
+    the neo4j database (representing image as a node).
+    """
+    # TODO: add file name cleaner 's => \'s
+    title = image_name.split("_")
+    title_multiple = title[0]+"_"+title[1]
+    title_thumbnail = title[0]+"_"+title[1]+"_thumbnail"
+    username = session['username']
+    image_upload_name = ' '.join(title[2:])
+    create_image_cypher = (("MERGE (a: Image {uploaded_by_user:'%s',image_title_given:'%s',"
+                            "image_title_thumbnail:'%s',"
+                            "description:'%s',album:'%s',image_location:'%s',"
+                            "image_thumbnail_location:'%s',image_title_long:'%s',image_title:'%s'})")
+                           % (username, title_multiple, title_thumbnail, description, album,
+                              image_location, image_thumbnail_location, image_name, image_upload_name))
+
+    GRAPH_INIT.run(create_image_cypher)
+    return True
+
+
+def generate_gallery_json(album, title_of_image, description, url, thumb_url, file_path):
+    """
+    Converts image meta data to json that the gallery functions
+    requires to load the carousel
+
+    Creates : <album>_<date>.json
+    """
+    # TODO: Use KG to generate data
+    # file_path
+    now = datetime.datetime.now()
+    date_time = now.strftime("%m/%d/%Y, %H:%M:%S")
+    gallery_file_json_output_album = {}
+    gallery_file_json_output_photos = {}
+
+    gallery_file_json_output_album["name"] = album
+
+    gallery_file_json_output_photos['id'] = "1"
+    gallery_file_json_output_photos['url'] = url
+    gallery_file_json_output_photos['thumb_url'] = thumb_url
+    gallery_file_json_output_photos['title'] = title_of_image
+    gallery_file_json_output_photos['date'] = date_time
+    gallery_file_json_output_photos['description'] = description
+
+    listoflists = []
+    listoflists.append(gallery_file_json_output_photos)
+    listoflists.append(gallery_file_json_output_photos)
+    print(listoflists)
+    merged = {}
+    merged["album"] = gallery_file_json_output_album
+    merged["photos"] = listoflists
+
+    with open("gallery.json", "w") as f:
+        json.dump(merged, f, indent=4)
+
+    return json.dumps(merged, indent=4)
 
 
 def to_mfcc(audio_file_path):
@@ -453,6 +545,74 @@ def to_mfcc(audio_file_path):
     return mfcc_matrix
 
 
+@appvar.route('/audio_labeling', methods=['GET', 'POST'])
+@login_required
+def audio_labeling():
+    """
+    Used by Audiophile to lable audio files, and
+    renders audioLabeling.html.
+    Exports matrix as '.txt'.
+    """
+
+    return render_template('audio_labeling.html', title="Audio Labler")
+
+    # TODO: Beautify comments
+
+
+"""
+┌──────────────────────────────────────────────┐
+│               Error Handeling                │
+└──────────────────────────────────────────────┘
+"""
+
+
+@appvar.errorhandler(401)
+def page_unauthorized(error):
+    """
+    Renders 401.html when a Page is unauthorized.
+    """
+    print(error)
+    return render_template('401.html'), 401
+
+
+@appvar.errorhandler(403)
+def page_forbidden(error):
+    """
+    Renders 403.html when a Page is forbidden.
+    """
+    print(error)
+    return render_template('403.html'), 403
+
+
+@appvar.errorhandler(404)
+def page_not_found(error):
+    """
+    Renders 404.html when a Page was not found.
+    """
+    print(error)
+    return render_template('404.html'), 404
+
+
+@appvar.errorhandler(410)
+def page_deleted(error):
+    """
+    Renders 410.html when a Page was deleted.
+    """
+    print(error)
+    return render_template('410.html'), 410
+
+
+@appvar.errorhandler(500)
+# TODO: add contact admin
+def page_error(error):
+    """
+    Renders 500.html when a Internal Server Error occurs.
+    """
+    print(error)
+    return render_template('500.html'), 500
+
+
 if __name__ == '__main__':
     # appvar.run(debug=True)
-    appvar.run()
+    # TODO : change port
+    appvar.run(ost='0.0.0.0', port=port)
