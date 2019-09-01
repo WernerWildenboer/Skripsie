@@ -4,16 +4,26 @@ Scripts that navigate routes and direct the user, also
 handels file transfers.
 """
 # TODO: Split up in to different files
-# TODO: Add abort / error handeling
+# TODO: Add more global variables (for album path)
+# TODO: Change appvar.root_path
+# TODO: Add plit_on_silence to audio in
+# TODO: Find usrs by usrname not ID
 
-import datetime
-import errno
-import os
-import sys
-import uuid
-
-import librosa
-import numpy as np
+from config import Config
+import pandas as pd
+from werkzeug.utils import secure_filename
+from resizeimage import resizeimage
+from py2neo import Graph, Node, NodeMatcher, Relationship
+from PIL import Image
+from flask_login import (
+    LoginManager,
+    UserMixin,
+    current_user,
+    login_required,
+    login_user, logout_user
+)
+import flask_login
+from flask_bcrypt import Bcrypt
 from flask import (
     Flask,
     flash,
@@ -23,21 +33,16 @@ from flask import (
     request,
     session, url_for
 )
-from flask_bcrypt import Bcrypt
-import flask_login
-from flask_login import (
-    LoginManager,
-    UserMixin,
-    current_user,
-    login_required,
-    login_user, logout_user
-)
-from PIL import Image
-from py2neo import Graph, Node, NodeMatcher, Relationship
-from resizeimage import resizeimage
-from werkzeug.utils import secure_filename
-
-from config import Config
+from pydub.silence import split_on_silence
+import pydub
+import numpy as np
+import librosa
+import uuid
+import sys
+import os
+import csv
+import datetime
+import errno
 
 # from .forms import LoginForm, RegistrationForm
 
@@ -150,6 +155,7 @@ def load_user(userid):
 
 
 @appvar.route('/gallery_json', endpoint='gallery_json_end_point')
+@login_required
 # Reason for rename,there was an endpoint probl
 def gallery_json_end_point():
     """
@@ -163,6 +169,25 @@ def gallery_json_end_point():
     json_path = os.path.join(appvar.root_path, 'gallery.json')
     gallery_json_var = open(json_path).read()
     return json.dumps(gallery_json_var)
+
+
+@appvar.route('/user_hosted_gallery')
+@login_required
+# Reason for rename,there was an endpoint probl
+def user_hosted_gallery():
+    """
+    Semantic description:
+        # TODO: step by step description
+    Returns: a json containing all the image information
+
+    Gets the json file stored at `appvar.root_path` reads
+    the data and returns it.
+    """
+    album_end = session['album']+'.json'
+    json_path = os.path.join(appvar.root_path, "static",
+                             "images", session['album'], album_end)
+    gallery_json_var = open(json_path).read()
+    return gallery_json_var
 
 
 @appvar.route('/uploadfile', methods=['GET', 'POST'])
@@ -214,6 +239,32 @@ def uploadfile():
     return redirect(url_for('audio_capturing'))
 
 
+@appvar.route('/uploadlables', methods=['GET', 'POST'])
+def upload_lables():
+    """
+    Used by Audiophile to lable audio files, and
+    renders audioLabeling.html.
+    Exports matrix as '.txt'.
+    """
+
+    if request.method == 'POST':
+        json_lables = request.get_json(silent=True)
+        lables_path = os.path.join(
+            appvar.root_path, "static", "lables", session['username'], "test.json")
+        if not os.path.exists(os.path.dirname(lables_path)):
+            try:
+                os.makedirs(os.path.dirname(lables_path))
+            except OSError as exc:  # Guard against race condition
+                if exc.errno != errno.EEXIST:
+                    raise
+        # Save file
+        with open(lables_path, 'w') as f:
+            json.dump(json_lables, f, indent=4, sort_keys=True)
+        f.close()
+
+    return render_template('audio_labeling.html', title="Azudio Labeling")
+
+
 @appvar.route('/audio_capturing', methods=['GET', 'POST'])
 @login_required
 def audio_capturing():
@@ -222,7 +273,19 @@ def audio_capturing():
     Returns: a redirection url to audio_capturing.html
     that ingests audio clip tags from the user.
     """
-    return render_template('audio_capturing.html', title='Audio Capturing')
+    if request.method == 'POST':
+        album = request.form['album']
+        session['album'] = album
+    # TODO : move to KG
+    albums = []
+    album_path = os.path.join(
+        appvar.root_path, "static", "images", "albums.csv")
+    with open(album_path, newline='') as csvfile:
+        album_names_in = csv.DictReader(csvfile, delimiter=',')
+        for row in album_names_in:
+            albums.append(row['albumName'])
+    csvfile.close()
+    return render_template('audio_capturing.html', title='Audio Capturing', albums=albums)
 
 
 def update_kg_audio(username, image_title, language, file_location):
@@ -271,7 +334,6 @@ def login():
             flash('Invalid login.')
             return redirect(url_for('login'))
         else:
-            flash('Logged in.')
             session['logged_in'] = True
             user = UserMain(user_id)
             session['username'] = username
@@ -344,7 +406,6 @@ def register():
 
             create_user_cypher = "MERGE (a: User {password:'%s',username:'%s',password:'%s',gender:'%s',location:'%s',first_language:'%s',input_language:'%s',age:'%s',user_id:'%s' });" % (
                 email, username, pw_hash_cleaned, gender, location, firstlanguage, inputlanguage, age, user_id)
-            print(create_user_cypher)
             GRAPH_INIT.run(create_user_cypher)
             return redirect(url_for('index'))
 
@@ -378,9 +439,10 @@ def upload_page():
     resizes it and sends it to the backend for storage.
 
     """
+    # TODO: Add if album exists check
     if request.method == "POST":
-         # User input variables
-        album = request.form['album']
+        # User input variables
+        album_name = request.form['album']
         title_of_image = request.form['title_of_image']
         description = request.form['description']
 
@@ -389,23 +451,30 @@ def upload_page():
             return redirect(request.url)
         i = 0
         for f in request.files.getlist('file'):
-            i = i+1
+            i += 1
             file = f
             if file.filename == "":
                 flash("No file attached")
                 return redirect(request.url)
 
             if file and allowed_file(file.filename):
+                album_path = os.path.join(
+                    appvar.root_path, "static", "images", "albums.csv")
+                album_name_list = [album_name]
+                # TODO:check if files is in DB already
+                with open(album_path, "a") as f:
+                    writer = csv.writer(f)
+                    writer.writerow(album_name_list)
+                f.close()
 
                 fname, ext = os.path.splitext(file.filename)
                 name_rand = str(i)+"_" + title_of_image + \
                     "_" + fname + str(uuid.uuid4()) + ext
                 filename = secure_filename(name_rand)
 
-                album_name = album
                 # Upload file store location file path
                 uploadfile_path = os.path.join(
-                    appvar.root_path, "static", "images", session['username'], album_name, filename)
+                    appvar.root_path, "static", "images", album_name, filename)
                 # Creates users dir if it does not exist
                 if not os.path.exists(os.path.dirname(uploadfile_path)):
                     try:
@@ -421,27 +490,32 @@ def upload_page():
                 filename_thumbnail_secure = secure_filename(filename_thumbnail)
 
                 uploadfile_path_thumbnail = os.path.join(
-                    appvar.root_path, "static", "images", session['username'], album_name, filename_thumbnail_secure)
+                    appvar.root_path, "static", "images", album_name, filename_thumbnail_secure)
                 with Image.open(file) as image:
-                    cover = resizeimage.resize_cover(image, [180, 180])
+                    cover = resizeimage.resize_cover(
+                        image, [180, 180], validate=False)
                     cover.save(os.path.join(
                         uploadfile_path_thumbnail), image.format)
 
                 # TODO: Send to json formatter
 
-                # Update KG
                 # Clean URL's
                 uploadfile_path_short = os.path.join(
-                    "images", session['username'], album_name, filename)
+                    "images", album_name, filename)
                 uploadfile_path_thumbnail_short = os.path.join(
-                    "images", session['username'], album_name, filename_thumbnail_secure)
+                    "images", album_name, filename_thumbnail_secure)
 
                 update_kg_image(filename, description, album_name,
                                 uploadfile_path_short, uploadfile_path_thumbnail_short)
 
-    return render_template('upload.html', title="Upload Form Example")
+                # Generates album json
+                album_file_path = os.path.join(
+                    appvar.root_path, "static", "images", album_name, album_name)+'.json'
+                album_path = os.path.join(
+                    appvar.root_path, "static", "images", album_name)
+                generate_gallery_json(album_name, album_file_path)
 
-# TODO: Shorten
+    return render_template('upload.html', title="Upload Form Example")
 
 
 def update_kg_image(image_name, description, album, image_location,
@@ -468,41 +542,81 @@ def update_kg_image(image_name, description, album, image_location,
     return True
 
 
-def generate_gallery_json(album, title_of_image, description, url, thumb_url, file_path):
+def generate_gallery_json(album, file_path):
     """
     Converts image meta data to json that the gallery functions
     requires to load the carousel
 
     Creates : <album>_<date>.json
     """
-    # TODO: Use KG to generate data
-    # file_path
-    now = datetime.datetime.now()
-    date_time = now.strftime("%m/%d/%Y, %H:%M:%S")
+    """
+    Generates gallery.json that the dashboard requires
+    to display images.
+    Returns json of album image.
+    """
     gallery_file_json_output_album = {}
-    gallery_file_json_output_photos = {}
-
     gallery_file_json_output_album["name"] = album
-
-    gallery_file_json_output_photos['id'] = "1"
-    gallery_file_json_output_photos['url'] = url
-    gallery_file_json_output_photos['thumb_url'] = thumb_url
-    gallery_file_json_output_photos['title'] = title_of_image
-    gallery_file_json_output_photos['date'] = date_time
-    gallery_file_json_output_photos['description'] = description
-
-    listoflists = []
-    listoflists.append(gallery_file_json_output_photos)
-    listoflists.append(gallery_file_json_output_photos)
-    print(listoflists)
+    gallery_file_json_output_photos = generate_list_images(album)
     merged = {}
     merged["album"] = gallery_file_json_output_album
-    merged["photos"] = listoflists
+    merged["photos"] = gallery_file_json_output_photos
 
-    with open("gallery.json", "w") as f:
+    with open(file_path, "w+") as f:
         json.dump(merged, f, indent=4)
 
-    return json.dumps(merged, indent=4)
+    return json.dumps(merged)
+
+
+def generate_list_images(album):
+    """
+    Generates gallery.json that the dashboard requires
+    to display images.
+    """
+    i = 0
+    listofImages = []
+    df = get_album_image_properties(album)
+    for index_df, row in df.iterrows():
+        i += 1
+        dict_image = generate_images_dictionary(
+            i, row['title'], row['description'], row['url'], row['thumb_url'])
+        listofImages.append(dict_image)
+
+    return listofImages
+
+
+def generate_images_dictionary(ID_in, title_of_image, description, url, thumb_url):
+    """
+    Generates a dictionary based on image properties.
+    """
+    images_dictionary = {}
+    now = datetime.datetime.now()
+    date_time = now.strftime("%m/%d/%Y, %H:%M:%S")
+    # TODO_check
+    images_dictionary['id'] = str(ID_in)
+    images_dictionary['url'] = url
+    images_dictionary['thumb_url'] = thumb_url
+    images_dictionary['title'] = title_of_image
+    images_dictionary['date'] = date_time
+    images_dictionary['description'] = description
+
+    return images_dictionary
+
+
+def get_album_image_properties(album):
+    """
+    Returns:
+    All image properties need to generate display json
+    based on album input.
+    """
+    create_get_image_cypher = (("MATCH (a:Image)"
+                                " WHERE a.album ='%s' "
+                                "RETURN a.image_title as title,a.image_location as url,"
+                                "a.image_thumbnail_location as thumb_url,"
+                                "a.description as description")
+                               % (album))
+
+    df = GRAPH_INIT.run(create_get_image_cypher).to_data_frame()
+    return df
 
 
 def to_mfcc(audio_file_path):
@@ -556,9 +670,38 @@ def audio_labeling():
 
     return render_template('audio_labeling.html', title="Audio Labler")
 
+
+def trim_audio(file_in_path, file_out_path, location_1, location_2):
+    """
+    Trims the audio input file between the 2
+    specified locations.
+    Returns trimmed audio file.
+    """
+    # Load audio.
+    audio_to_trim = pydub.AudioSegment.from_file(file_in_path)
+    # Get ext.
+    fname, ext = os.path.splitext(file_in_path)
+    if file_out_path:
+        file_out_path_file = file_out_path+"/" + \
+            fname.split("/")[-1]+"_trimmed"+".wav"
+    else:
+        file_out_path_file = fname.split("/")[-1]+"_trimmed"+".wav"
+    # Trim audio.
+    audio_to_trim[location_1:location_2].export(
+        file_out_path_file, format="wav")
+    return True
+
+
+def seconds_to_milliseconds(seconds_in):
+    """
+    Coverts input seconds to milliseconds.
+    Returns int.
+    """
+    milliseconds = seconds_in * 1000
+    return milliseconds
+
+
     # TODO: Beautify comments
-
-
 """
 ┌──────────────────────────────────────────────┐
 │               Error Handeling                │
@@ -615,4 +758,5 @@ def page_error(error):
 if __name__ == '__main__':
     # appvar.run(debug=True)
     # TODO : change port
+    appvar.debug = True
     appvar.run(ost='0.0.0.0', port=port)

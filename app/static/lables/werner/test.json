@@ -1,0 +1,182 @@
+{
+    "annotation_events": [
+        {
+            "event": "start-to-create",
+            "region_id": "wavesurfer_9manh8i88n",
+            "time": 1567110246793
+        },
+        {
+            "event": "offline-create",
+            "region_end": 3.933654390834348,
+            "region_id": "wavesurfer_9manh8i88n",
+            "region_start": 2.976224950973297,
+            "time": 1567110247372
+        },
+        {
+            "event": "delete",
+            "region_id": "wavesurfer_9manh8i88n",
+            "time": 1567110248253
+        },
+        {
+            "event": "start-to-create",
+            "region_id": "wavesurfer_t2if8in7n7",
+            "time": 1567110252010
+        },
+        {
+            "event": "offline-create",
+            "region_end": 4.959918627025278,
+            "region_id": "wavesurfer_t2if8in7n7",
+            "region_start": 3.0200289122741295,
+            "time": 1567110252161
+        },
+        {
+            "event": "delete",
+            "region_id": "wavesurfer_t2if8in7n7",
+            "time": 1567110254750
+        },
+        {
+            "event": "start-to-create",
+            "region_id": "wavesurfer_ooa8vr4d9f",
+            "time": 1567110255926
+        },
+        {
+            "event": "offline-create",
+            "region_end": 4.916114665724446,
+            "region_id": "wavesurfer_ooa8vr4d9f",
+            "region_start": 4.909856956967184,
+            "time": 1567110255933
+        },
+        {
+            "event": "delete",
+            "region_id": "wavesurfer_ooa8vr4d9f",
+            "time": 1567110256709
+        },
+        {
+            "event": "start-to-create",
+            "region_id": "wavesurfer_8um3ogc54jg",
+            "time": 1567110338243
+        },
+        {
+            "event": "offline-create",
+            "region_end": 4.334147751299101,
+            "region_id": "wavesurfer_8um3ogc54jg",
+            "region_start": 3.0513174560604384,
+            "time": 1567110338730
+        },
+        {
+            "event": "add-annotation-label",
+            "region_id": "wavesurfer_8um3ogc54jg",
+            "region_label": "engine idling",
+            "time": 1567110340071
+        },
+        {
+            "event": "add-proximity-label",
+            "region_id": "wavesurfer_8um3ogc54jg",
+            "region_label": "far",
+            "time": 1567110341556
+        },
+        {
+            "event": "start-to-create",
+            "region_id": "wavesurfer_p8qe1vma9k8",
+            "time": 1567110488981
+        },
+        {
+            "event": "offline-create",
+            "region_end": 2.66959722186747,
+            "region_id": "wavesurfer_p8qe1vma9k8",
+            "region_start": 2.6570818043529467,
+            "time": 1567110489052
+        },
+        {
+            "event": "start-to-create",
+            "region_id": "wavesurfer_fmaj1vdd6n",
+            "time": 1567110489330
+        },
+        {
+            "event": "offline-create",
+            "region_end": 2.2252999001018847,
+            "region_id": "wavesurfer_fmaj1vdd6n",
+            "region_start": 1.3116744215416665,
+            "time": 1567110489692
+        },
+        {
+            "event": "delete",
+            "region_id": "wavesurfer_p8qe1vma9k8",
+            "time": 1567110491703
+        },
+        {
+            "event": "add-annotation-label",
+            "region_id": "wavesurfer_fmaj1vdd6n",
+            "region_label": "music playing",
+            "time": 1567110493167
+        },
+        {
+            "event": "add-proximity-label",
+            "region_id": "wavesurfer_fmaj1vdd6n",
+            "region_label": "not sure",
+            "time": 1567110494673
+        }
+    ],
+    "annotations": [
+        {
+            "annotation": "engine idling",
+            "end": 4.334147751299101,
+            "id": "wavesurfer_8um3ogc54jg",
+            "proximity": "far",
+            "start": 3.0513174560604384
+        },
+        {
+            "annotation": "music playing",
+            "end": 2.2252999001018847,
+            "id": "wavesurfer_fmaj1vdd6n",
+            "proximity": "not sure",
+            "start": 1.3116744215416665
+        }
+    ],
+    "deleted_annotations": [
+        {
+            "annotation": "",
+            "end": 3.933654390834348,
+            "id": "wavesurfer_9manh8i88n",
+            "proximity": "",
+            "start": 2.976224950973297
+        },
+        {
+            "annotation": "",
+            "end": 4.959918627025278,
+            "id": "wavesurfer_t2if8in7n7",
+            "proximity": "",
+            "start": 3.0200289122741295
+        },
+        {
+            "annotation": "",
+            "end": 4.916114665724446,
+            "id": "wavesurfer_ooa8vr4d9f",
+            "proximity": "",
+            "start": 4.909856956967184
+        },
+        {
+            "annotation": "",
+            "end": 2.66959722186747,
+            "id": "wavesurfer_p8qe1vma9k8",
+            "proximity": "",
+            "start": 2.6570818043529467
+        }
+    ],
+    "final_solution_shown": false,
+    "play_events": [
+        {
+            "audioSourceTime": 4.916114665724446,
+            "event": "click-play",
+            "time": 1567110259393
+        },
+        {
+            "audioSourceTime": 6.030672488853699,
+            "event": "click-pause",
+            "time": 1567110260517
+        }
+    ],
+    "task_end_time": 1567110495358,
+    "task_start_time": 1567110236385,
+    "visualization": "spectrogram"
+}

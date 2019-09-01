@@ -4,7 +4,20 @@
     <p>Explain</p>
   </div>
 </div>
-<div class="w3-container"></div>
+<div class="w3-container">
+  <form class="w3-container" action="{{ url_for('audio_capturing') }}" method="post" id="audio_capturing_form">
+
+
+
+    <select class="w3-select" name="album" required>
+      <option value="" disabled selected>Choose the album to label</option>
+      {% for album in albums %}
+      <option value="{{album}}">{{album}}</option>"
+      {% endfor %}
+    </select>
+    <button type="submit" class="w3-button w3-block w3-section w3-theme w3-ripple w3-padding" name="load">LOAD</button>
+  </form>
+</div>
 <div class="w3-container w3-center">
   <div id="header" class="w3-card ">
     <div id="nav">
@@ -14,7 +27,7 @@
     <div class="album"></div>
   </div>
 </div>
-<div class="w3-container w3-center">
+<div style="width:100%;" class="w3-container w3-center">
   <div id="frame" class="w3-card">
     <div class="photo-wrapper w3-border w3-padding">
       <img class="photo w3-animate-right" />
@@ -25,10 +38,10 @@
     </div>
   </div>
 </div>
-<div class="w3-container w3-center">
-  <div class="gallery w3-card w3-bar">
-    <div id="slider" class="slider w3-row">
-      <div id="thumbnails"></div>
+<div style="width:100%;" class="w3-container w3-center">
+  <div style="width:100%;" class="gallery w3-card w3-bar">
+    <div style="width:100%;" id="slider" class="slider w3-row">
+      <div style="width:100%;" id="thumbnails"></div>
       <span class="prev"></span>
       <span class="next"></span>
     </div>

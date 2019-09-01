@@ -68,7 +68,9 @@ librosa = "*"
 uuid = "*"
 easydict = "*"
 python-resize-image = "*"
-
+pandas = "*"
+pydub = "*"
+heartrate = "*"
 
 [requires]
-python_version = "3"
+python_version = "3.7"

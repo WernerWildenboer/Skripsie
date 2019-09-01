@@ -20,8 +20,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.9.0/css/all.css">
 
-  <!-- Title 
-  - Loaded from Flask if title is present-->
+  <!-- Title - Loaded from Flask if title is present-->
   {% if title %}
   <title>{{ title }} Non-written languages preservation application</title>
   {% else %}
@@ -51,6 +50,23 @@
 
   <!--Web sockets-->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
+
+  <!-- Audio labeler -->
+
+  <script type="text/javascript" src="/static/js/lib/materialize.min.js"></script>
+  <script type="text/javascript" src="/static/js/lib/wavesurfer.min.js"></script>
+  <script type="text/javascript" src="/static/js/lib/wavesurfer.spectrogram.min.js"></script>
+  <script type="text/javascript" src="/static/js/colormap/colormap.min.js"></script>
+
+  <script type="text/javascript" src="/static/js/src/message.js"></script>
+  <script type="text/javascript" src="/static/js/src/wavesurfer.regions.js"></script>
+  <script type="text/javascript" src="/static/js/src/wavesurfer.drawer.extended.js"></script>
+  <script type="text/javascript" src="/static/js/src/wavesurfer.labels.js"></script>
+  <script type="text/javascript" src="/static/js/src/hidden_image.js"></script>
+  <script type="text/javascript" src="/static/js/src/components.js"></script>
+  <script type="text/javascript" src="/static/js/src/annotation_stages.js"></script>
+  <script type="text/javascript" src="/static/js/src/main.js" defer></script>
+
 
   <!--Javascipt variables-->
   {% if current_user.is_authenticated %}

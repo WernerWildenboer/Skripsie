@@ -1,23 +1,31 @@
 {
     "album": {
-        "name": "lotr"
+        "name": "test"
     },
     "photos": [
         {
-            "id": "1",
-            "url": "images/werner/lotr/74bffb8ab937853bce9eabd2033456f4bf478ad2-b17c-434b-bb76-1a82aa4a2f46.jpg",
-            "thumb_url": "images/werner/lotr/74bffb8ab937853bce9eabd2033456f442022bb6-b8e3-40e5-82c4-161557fdc73c_thumbnail_.jpg",
-            "title": "Frodo",
-            "date": "08/05/2019, 01:35:22",
-            "description": "Hobbit"
+            "id": 1,
+            "url": "images/werner/test/1_test_Screenshot_from_2019-08-03_18-34-3628122648-8af9-4768-afcc-980fbdc6ee05.png",
+            "thumb_url": "images/werner/test/1_test__thumbnail_Screenshot_from_2019-08-03_18-34-36911d7f4f-93be-4e92-81f0-fcf4919fcecb.png",
+            "title": "Screenshotfrom2019-08-0318-34-3628122648-8af9-4768-afcc-980fbdc6ee05.png",
+            "date": "08/06/2019, 20:11:54",
+            "description": "test"
         },
         {
-            "id": "1",
-            "url": "images/werner/lotr/74bffb8ab937853bce9eabd2033456f4bf478ad2-b17c-434b-bb76-1a82aa4a2f46.jpg",
-            "thumb_url": "images/werner/lotr/74bffb8ab937853bce9eabd2033456f442022bb6-b8e3-40e5-82c4-161557fdc73c_thumbnail_.jpg",
-            "title": "Frodo",
-            "date": "08/05/2019, 01:35:22",
-            "description": "Hobbit"
+            "id": 2,
+            "url": "images/werner/test/2_test_Screenshot_from_2019-08-03_18-34-33224a83b6-109b-4ccb-a464-38e850fe6cda.png",
+            "thumb_url": "images/werner/test/2_test__thumbnail_Screenshot_from_2019-08-03_18-34-335967dc07-8de0-4c47-93e8-1b68eabc50b4.png",
+            "title": "Screenshotfrom2019-08-0318-34-33224a83b6-109b-4ccb-a464-38e850fe6cda.png",
+            "date": "08/06/2019, 20:11:54",
+            "description": "test"
+        },
+        {
+            "id": 3,
+            "url": "images/werner/test/3_test_wood0b3a6328-d0ef-4b21-b72c-cf7692fc6e02.png",
+            "thumb_url": "images/werner/test/3_test__thumbnail_wood66f1be08-761f-4dc3-95ae-b1ef5d20b9ce.png",
+            "title": "wood0b3a6328-d0ef-4b21-b72c-cf7692fc6e02.png",
+            "date": "08/06/2019, 20:11:54",
+            "description": "test"
         }
     ]
 }

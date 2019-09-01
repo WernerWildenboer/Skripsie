@@ -12,7 +12,7 @@ $(function () {
   var $edge;
   var $selected;
   var currPhoto;
-
+  console.log("Render");
   /* 
   Get gallery json data & initialize page
   Semantic description:
@@ -29,9 +29,11 @@ $(function () {
   > initSlider
 
   */
-  $.getJSON("/gallery_json", function (data) {
+  $.getJSON("/user_hosted_gallery", function (data) {
     //Loads data from hosted json
-    data = JSON.parse(data);
+    console.log(data);
+    //data = JSON.parse(data);
+
     /*
     Selects children from header containing album as class
     as sets the text the loaded json value `data.album.name`.
@@ -48,7 +50,7 @@ $(function () {
       // i's element is loaded into photo
       photo = data.photos[i];
       thumbnails +=
-        "<div class=\"w3-cell w3-container\"><img data-index=" +
+        "<div style=\"display: inline-block;\"  class=\"w3-cell w3-container\"><img style=\"display: inline-block;\" data-index=" +
         photo.id +
         " src='/static/" +
         photo.thumb_url +
@@ -180,7 +182,7 @@ $(function () {
       $caption.children(".title").text(photo.title);
       $caption
         .children(".data")
-        .text("Taken on " + photo.date + " in " + photo.description);
+        .text("Uploaded on " + photo.date + " Description :" + photo.description);
     }
   }
 
