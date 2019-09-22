@@ -71,6 +71,11 @@ python-resize-image = "*"
 pandas = "*"
 pydub = "*"
 heartrate = "*"
+dtw = "*"
+playsound = "*"
+gi = "*"
+pgi = "*"
+python3-gi = "*"
 
 [requires]
 python_version = "3.7"

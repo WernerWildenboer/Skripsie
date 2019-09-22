@@ -11,6 +11,8 @@ handels file transfers.
 
 from config import Config
 import pandas as pd
+from dtw import dtw
+import copy
 from werkzeug.utils import secure_filename
 from resizeimage import resizeimage
 from py2neo import Graph, Node, NodeMatcher, Relationship
@@ -287,6 +289,49 @@ def audio_capturing():
     csvfile.close()
     return render_template('audio_capturing.html', title='Audio Capturing', albums=albums)
 
+@appvar.route('/audio_capturing_V1', methods=['GET', 'POST'])
+@login_required
+def audio_capturing_V1():
+    """
+    Semantic description:
+    Returns: a redirection url to audio_capturing.html
+    that ingests audio clip tags from the user.
+    """
+    if request.method == 'POST':
+        album = request.form['album']
+        session['album'] = album
+    # TODO : move to KG
+    albums = []
+    album_path = os.path.join(
+        appvar.root_path, "static", "images", "albums.csv")
+    with open(album_path, newline='') as csvfile:
+        album_names_in = csv.DictReader(csvfile, delimiter=',')
+        for row in album_names_in:
+            albums.append(row['albumName'])
+    csvfile.close()
+    return render_template('audio_capturing_v1.html', title='Audio Capturing', albums=albums)
+
+@appvar.route('/audio_capturing_V2', methods=['GET', 'POST'])
+@login_required
+def audio_capturing_V2():
+    """
+    Semantic description:
+    Returns: a redirection url to audio_capturing.html
+    that ingests audio clip tags from the user.
+    """
+    if request.method == 'POST':
+        album = request.form['album']
+        session['album'] = album
+    # TODO : move to KG
+    albums = []
+    album_path = os.path.join(
+        appvar.root_path, "static", "images", "albums.csv")
+    with open(album_path, newline='') as csvfile:
+        album_names_in = csv.DictReader(csvfile, delimiter=',')
+        for row in album_names_in:
+            albums.append(row['albumName'])
+    csvfile.close()
+    return render_template('audio_capturing_v2.html', title='Audio Capturing', albums=albums)
 
 def update_kg_audio(username, image_title, language, file_location):
     """
@@ -668,10 +713,31 @@ def audio_labeling():
     Exports matrix as '.txt'.
     """
 
+    # list_training_data_paths =  ['/home/werner/Desktop/Skripsie/Test 3/Skripsie/app/static/audio_samples/elias_mothers_milk_word.m4a','/home/werner/Desktop/Skripsie/Test 3/Skripsie/app/static/audio_samples/chris_mothers_milk_word.m4a','/home/werner/Desktop/Skripsie/Test 3/Skripsie/app/static/audio_samples/yaoquan_mothers_milk_word.m4a']
+    # dynamic_time_warping('/home/werner/Desktop/Skripsie/Test 3/Skripsie/app/static/audio_samples/elias_mothers_milk_sentence.m4a',list_training_data_paths)
     return render_template('audio_labeling.html', title="Audio Labler")
 
+@appvar.route('/dynamic_time_warping', methods=['GET', 'POST'])
+@login_required
+def dynamic_time_warping():
+    """
+    Used by Audiophile to lable audio files, and
+    renders audioLabeling.html.
+    Exports matrix as '.txt'.
+    """
+    if request.method == 'POST':
+        audio_search_snippet_selected = request.form['audio_snippet']
+        training_data_selected_list = request.form.getlist('chek_box')
+        dynamic_time_warping_function(audio_search_snippet_selected, training_data_selected_list)
+    
 
-def trim_audio(file_in_path, file_out_path, location_1, location_2):
+    audio_snippet = get_list_of_all_audio_file_paths()
+    # list_training_data_paths =  ['/home/werner/Desktop/Skripsie/Test 3/Skripsie/app/static/audio_samples/elias_mothers_milk_word.m4a','/home/werner/Desktop/Skripsie/Test 3/Skripsie/app/static/audio_samples/chris_mothers_milk_word.m4a','/home/werner/Desktop/Skripsie/Test 3/Skripsie/app/static/audio_samples/yaoquan_mothers_milk_word.m4a']
+    # dynamic_time_warping('/home/werner/Desktop/Skripsie/Test 3/Skripsie/app/static/audio_samples/elias_mothers_milk_sentence.m4a',list_training_data_paths)
+    return render_template('dynamic_time_warping.html', title="Dynamic Time Warping",audio_snippet=audio_snippet)
+
+
+def trim_audio(file_in_path, file_out_path, location_trim_1, location_trim_2):
     """
     Trims the audio input file between the 2
     specified locations.
@@ -687,7 +753,7 @@ def trim_audio(file_in_path, file_out_path, location_1, location_2):
     else:
         file_out_path_file = fname.split("/")[-1]+"_trimmed"+".wav"
     # Trim audio.
-    audio_to_trim[location_1:location_2].export(
+    audio_to_trim[location_trim_1:location_trim_2].export(
         file_out_path_file, format="wav")
     return True
 
@@ -700,6 +766,97 @@ def seconds_to_milliseconds(seconds_in):
     milliseconds = seconds_in * 1000
     return milliseconds
 
+def preprocess_mfcc(mfcc):
+    """
+    Remove mean and normalize each column of MFCC
+    """
+    mfcc_cp = copy.deepcopy(mfcc)
+    for i in range(mfcc.shape[1]):
+        mfcc_cp[:,i] = mfcc[:,i] - np.mean(mfcc[:,i])
+        mfcc_cp[:,i] = mfcc_cp[:,i]/np.max(np.abs(mfcc_cp[:,i]))
+    return mfcc_cp
+
+
+def dynamic_time_warping_function(searchable_as_path, list_training_data_paths):
+    """
+    searchable_as_path : The audio snippet, in which we would like to correctly
+                         identify the window in time containing the target phrase.
+    list_training_data_paths : List containing the paths the training data (audio clips)
+
+    Dynamic time warping (DTW) is one of the algorithms for measuring similarity between
+    two temporal sequences, which may vary in speed.
+    """
+    # Load audio to search
+    y_searchable, sr_searchable = librosa.load(searchable_as_path)
+
+    # Load Training data
+    y_list = []
+    sr_list = []
+
+    for path in list_training_data_paths:
+        audio_time_series, sampling_rate = librosa.load(path)
+        y_list.append(audio_time_series)
+        sr_list.append(sampling_rate)
+    
+    # Convert the data to mfcc:
+    mffc_searchable = librosa.feature.mfcc(y_searchable, sr_searchable)
+    mffc_list_training = []
+    for audio_time_series_2, sampling_rate_2 in zip(y_list, sr_list):
+        mffc_list_training.append(librosa.feature.mfcc(audio_time_series_2, sampling_rate_2))
+
+    # Remove mean and normalize each column of MFCC
+    mffc_searchable = preprocess_mfcc(mffc_searchable)
+    mffc_list_training_preprocess = []
+    for mffc_training in mffc_list_training:
+        preprocess_mfcc_var = preprocess_mfcc(mffc_training)
+        mffc_list_training_preprocess.append(preprocess_mfcc_var)
+    
+    # Window size:
+    window_size = mffc_list_training_preprocess[0].shape[1]
+    dists = np.zeros(mffc_searchable.shape[1] - window_size)
+
+
+    for i in range(len(dists)):
+        dist_list = []
+
+        mfcci = mffc_searchable[:,i:i+window_size]
+        for training_mffc in mffc_list_training_preprocess:
+            dist_list.append(dtw(training_mffc.T, mfcci.T,dist = lambda x, y: np.exp(np.linalg.norm(x - y, ord=1)))[0])
+        list_summerized = sum(dist_list)
+        list_size =  len(dist_list)
+        dists[i] = (list_summerized)/list_size
+
+    # select minimum distance window
+    word_match_idx = dists.argmin()
+
+    # convert MFCC to time domain
+    word_match_idx_bnds = np.array([word_match_idx, np.ceil(word_match_idx+window_size)])
+    samples_per_mfcc = 512
+    word_samp_bounds = (2/2) + (word_match_idx_bnds*samples_per_mfcc)
+
+    target_phrase = y_searchable[int(word_samp_bounds[0]):int(word_samp_bounds[1])]
+    storing_path = 'app/static/DTW/%s' % (session['username'])
+    if not os.path.exists(storing_path):
+                    try:
+                        os.makedirs(storing_path)
+                    except OSError as exc:  # Guard against race condition
+                        if exc.errno != errno.EEXIST:
+                            raise
+    storing_path = 'app/static/DTW/%s/found_phrase.wav' % (session['username'])
+    librosa.output.write_wav(storing_path, target_phrase, sr_list[0])
+    
+    return True
+
+def get_list_of_all_audio_file_paths():
+    """
+    Returns:
+    List of all the paths to audio files.
+    """
+    create_get_image_cypher = ("MATCH (a:Metadata)"
+                                "RETURN a.file_location")
+    df = GRAPH_INIT.run(create_get_image_cypher).to_data_frame()
+    audio_path_list = df['a.file_location'].values.tolist()
+    return audio_path_list
 
     # TODO: Beautify comments
 """
