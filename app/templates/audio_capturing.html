@@ -19,27 +19,32 @@
     <button type="submit" class="w3-button w3-block w3-section w3-theme w3-ripple w3-padding" name="load">LOAD</button>
   </form>
 </div>
+
 <div class="w3-container w3-center">
   <div class="w3-row">
 
     <div id="nav">
+
       <div class="w3-dropdown-click w3-left">
-        <button onclick="dropDownFunction()" class="w3-button w3-left">Alternative styles</button>
-        <br><br>
+
+        <button onclick="dropDownFunction()" class="fas fa-link w3-btn w3-lef w3-xlarge"></button>
+        <br>
         <div id="Demo" class="w3-dropdown-content w3-bar-block w3-border">
-          <a href="{{ url_for('audio_capturing') }}" class="w3-bar-item w3-button">AC-V0</a>
-          <a href="{{ url_for('audio_capturing_V1') }}" class="w3-bar-item w3-button">AC-V1</a>
-          <a href="{{ url_for('audio_capturing_V2') }}" class="w3-bar-item w3-button">AC-V2</a>
+          <a href="{{ url_for('audio_capturing') }}" class="w3-bar-item w3-button">AC-V 0</a>
+          <a href="{{ url_for('audio_capturing_V1') }}" class="w3-bar-item w3-button">AC-V 1</a>
+          <a href="{{ url_for('audio_capturing_V2') }}" class="w3-bar-item w3-button">AC-V 2</a>
         </div>
       </div>
+      <button class="far fa-stop-circle w3-btn w3-left w3-xlarge" onClick="myCounterStop()"></button>
       <button class="prev fa fa-arrow-left w3-xxxlarge"></button>
       <button class="fas fa-microphone-slash w3-btn  w3-round-xlarge w3-center w3-xxxlarge  w3-hover-light-blue"
         id="stop-btn" type="button" disabled></button>
+
       <button class="fas fa-microphone w3-btn w3-round-xlarge w3-center w3-xxxlarge  w3-hover-light-blue" id="start-btn"
-        type="button"></button>
+        type="button" onclick="myTimer = setInterval(myCounter, 1)"></button>
 
       <button class="next fa fa-arrow-right w3-xxxlarge"></button>
-      <button class="w3-button w3-xlarge w3-right" onclick="openRightMenu()">&#9776;</button>
+      <button class="fas fa-volume-up w3-button w3-xlarge w3-right" onclick="openRightMenu()"></button>
     </div>
   </div>
   <div id="header" class="w3-card ">
@@ -87,6 +92,14 @@
 
 </div>
 <script>
+  var c = 0;
+  function myCounter() {
+    c++;
+  }
+  function myCounterStop() {
+    clearInterval(myTimer)
+    console.log(c);
+  }
   function dropDownFunction() {
     var x = document.getElementById("Demo");
     if (x.className.indexOf("w3-show") == -1) {

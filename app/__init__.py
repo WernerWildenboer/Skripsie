@@ -209,7 +209,7 @@ def uploadfile():
     if request.method == 'POST':
         file_var = request.files['file']
         audio_path = os.path.join(
-            appvar.root_path, "static", "audio", session['username'], file_var.filename)
+            appvar.root_path, "static", "audio", session['username'],".wav" ,file_var.filename)
 
         session['file_location'] = audio_path
         session['file_name'] = file_var.filename
@@ -234,8 +234,46 @@ def uploadfile():
         file_location = audio_path
 
         update_kg_audio(username, image_title, language, file_location)
+        # Creates users dir if it does not exist
+        mfcc_path = os.path.join(
+            appvar.root_path, "static", "audio", session['username'],"mfcc" ,file_var.filename)
+        stft_path = os.path.join(
+            appvar.root_path, "static", "audio", session['username'],"stft" ,file_var.filename)
+        spectral_centroid_path = os.path.join(
+            appvar.root_path, "static", "audio", session['username'],"spectral_centroid" ,file_var.filename)
+        zero_crossing_rate_path = os.path.join(
+            appvar.root_path, "static", "audio", session['username'],"zero_crossing_rate" ,file_var.filename)
+
+        if not os.path.exists(os.path.dirname(mfcc_path)):
+            try:
+                os.makedirs(os.path.dirname(mfcc_path))
+            except OSError as exc:  # Guard against race condition
+                if exc.errno != errno.EEXIST:
+                    raise
+        if not os.path.exists(os.path.dirname(stft_path)):
+            try:
+                os.makedirs(os.path.dirname(stft_path))
+            except OSError as exc:  # Guard against race condition
+                if exc.errno != errno.EEXIST:
+                    raise
+        if not os.path.exists(os.path.dirname(spectral_centroid_path)):
+            try:
+                os.makedirs(os.path.dirname(spectral_centroid_path))
+            except OSError as exc:  # Guard against race condition
+                if exc.errno != errno.EEXIST:
+                    raise
+        if not os.path.exists(os.path.dirname(zero_crossing_rate_path)):
+            try:
+                os.makedirs(os.path.dirname(zero_crossing_rate_path))
+            except OSError as exc:  # Guard against race condition
+                if exc.errno != errno.EEXIST:
+                    raise
 
         to_mfcc(audio_path)
+        to_stft(audio_path)
+        to_spectral_centroid(audio_path)
+        to_zero_crossing_rate(audio_path)
+
         return redirect(url_for('audio_capturing'))
     # TODO : look at print
     return redirect(url_for('audio_capturing'))
@@ -663,7 +701,11 @@ def get_album_image_properties(album):
     df = GRAPH_INIT.run(create_get_image_cypher).to_data_frame()
     return df
 
-
+"""
+┌──────────────────────────────────────────────┐
+│               Audio Conversion               │
+└──────────────────────────────────────────────┘
+"""
 def to_mfcc(audio_file_path):
     """
     Convert audio to MFCC and stores in a matrix.
@@ -689,7 +731,7 @@ def to_mfcc(audio_file_path):
     mfcc_file_name_txt = 'MFCC_'+session['file_name'][:-4] + '.txt'
 
     mfcc_path_txt = os.path.join(
-        appvar.root_path, "static", "audio", session['username'], mfcc_file_name_txt)
+        appvar.root_path, "static", "audio", session['username'], "mfcc", mfcc_file_name_txt)
     f = open(mfcc_path_txt, "w")
     np.savetxt(f, mfcc_matrix, fmt='%1.10f')
     f.close()
@@ -698,10 +740,85 @@ def to_mfcc(audio_file_path):
     mfcc_file_name_csv = 'MFCC_'+session['file_name'][:-4] + '.csv'
 
     mfcc_path_csv = os.path.join(
-        appvar.root_path, "static", "audio", session['username'], mfcc_file_name_csv)
+        appvar.root_path, "static", "audio", session['username'], "mfcc", mfcc_file_name_csv)
     np.savetxt(mfcc_path_csv, mfcc_matrix, delimiter=",")
 
     return mfcc_matrix
+
+def to_stft(audio_file_path):
+    """
+    Convert audio to Short-time Fourier transform (STFT) and stores in a matrix.
+    Exports matrix as '.txt'.
+    """
+    y, sr = librosa.load(audio_file_path)
+    # Let's make and display a mel-scaled power (energy-squared) spectrogram
+    S = librosa.feature.melspectrogram(y, sr=sr, n_mels=128, n_fft=2048)
+
+    # Convert to log scale (dB). We'll use the peak power (max) as reference.
+    log_S = librosa.power_to_db(S, ref=np.max)
+    # Next, we'll extract the top 13 Mel-frequency cepstral coefficients (MFCCs)
+    stft = librosa.stft(y)
+
+    stft_matrix = np.abs(librosa.stft(y))
+
+
+    # .csv
+    stft_file_name_csv = 'STFT'+session['file_name'][:-4] + '.csv'
+
+    stft_path_csv = os.path.join(
+        appvar.root_path, "static", "audio", session['username'], "stft", stft_file_name_csv)
+    np.savetxt(stft_path_csv, stft_matrix, delimiter=",")
+
+    return stft_matrix
+
+def to_spectral_centroid(audio_file_path):
+    """
+    Convert audio to spectral_centroid and stores in a matrix.
+    Exports matrix as '.txt'.
+    """
+    y, sr = librosa.load(audio_file_path)
+    # Let's make and display a mel-scaled power (energy-squared) spectrogram
+    S = librosa.feature.melspectrogram(y, sr=sr, n_mels=128, n_fft=2048)
+
+    # Convert to log scale (dB). We'll use the peak power (max) as reference.
+    log_S = librosa.power_to_db(S, ref=np.max)
+
+    spectral_centroid_array = librosa.feature.spectral_centroid(y=y, sr=sr)
+
+
+    # .csv
+    spectral_centroid_file_name_csv = 'spectral_centroid_'+session['file_name'][:-4] + '.csv'
+
+    spectral_centroid_path_csv = os.path.join(
+        appvar.root_path, "static", "audio", session['username'], "spectral_centroid", spectral_centroid_file_name_csv)
+    np.savetxt(spectral_centroid_path_csv, spectral_centroid_array, delimiter=",")
+
+    return spectral_centroid_array
+
+def to_zero_crossing_rate(audio_file_path):
+    """
+    Convert audio to zero_crossing_rate and stores in a matrix.
+    Exports matrix as '.txt'.
+    """
+    y, sr = librosa.load(audio_file_path)
+    # Let's make and display a mel-scaled power (energy-squared) spectrogram
+    S = librosa.feature.melspectrogram(y, sr=sr, n_mels=128)
+
+    # Convert to log scale (dB). We'll use the peak power (max) as reference.
+    log_S = librosa.power_to_db(S, ref=np.max)
+
+    zero_crossing_rate_array = librosa.feature.zero_crossing_rate(y)
+
+    # .csv
+    zero_crossing_rate_file_name_csv = 'zero_crossing_rate_'+session['file_name'][:-4] + '.csv'
+
+    spectral_centroid_path_csv = os.path.join(
+        appvar.root_path, "static", "audio", session['username'], "zero_crossing_rate", zero_crossing_rate_file_name_csv)
+    np.savetxt(spectral_centroid_path_csv, zero_crossing_rate_array, delimiter=",")
+
+    return zero_crossing_rate_array
+
+
 
 
 @appvar.route('/audio_labeling', methods=['GET', 'POST'])
