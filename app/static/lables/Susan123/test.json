@@ -1,0 +1,350 @@
+{
+    "annotation_events": [
+        {
+            "event": "start-to-create",
+            "region_id": "wavesurfer_44gda1hble",
+            "time": 1565514265369
+        },
+        {
+            "event": "offline-create",
+            "region_end": 2.6199064384960784,
+            "region_id": "wavesurfer_44gda1hble",
+            "region_start": 0.3309961200722026,
+            "time": 1565514266805
+        },
+        {
+            "event": "add-annotation-label",
+            "region_id": "wavesurfer_44gda1hble",
+            "region_label": "whistle",
+            "time": 1565514268705
+        },
+        {
+            "event": "add-proximity-label",
+            "region_id": "wavesurfer_44gda1hble",
+            "region_label": "near",
+            "time": 1565514274604
+        },
+        {
+            "event": "start-to-create",
+            "region_id": "wavesurfer_s8780ia8lsg",
+            "time": 1565514278236
+        },
+        {
+            "event": "offline-create",
+            "region_end": 2.9995029517000376,
+            "region_id": "wavesurfer_s8780ia8lsg",
+            "region_start": 2.9995029517000376,
+            "time": 1565514278265
+        },
+        {
+            "event": "region-moved-end",
+            "region_end": 3.005168571300097,
+            "region_id": "wavesurfer_s8780ia8lsg",
+            "region_start": 2.9995029517000376,
+            "time": 1565514278992
+        },
+        {
+            "event": "deselect",
+            "region_id": "wavesurfer_s8780ia8lsg",
+            "time": 1565514278993
+        },
+        {
+            "event": "delete",
+            "region_id": "wavesurfer_s8780ia8lsg",
+            "time": 1565514280991
+        },
+        {
+            "event": "start-to-create",
+            "region_id": "wavesurfer_37bsrm61mog",
+            "time": 1565514282076
+        },
+        {
+            "event": "offline-create",
+            "region_end": 4.251604883313099,
+            "region_id": "wavesurfer_37bsrm61mog",
+            "region_start": 3.0221654301002743,
+            "time": 1565514284159
+        },
+        {
+            "event": "add-annotation-label",
+            "region_id": "wavesurfer_37bsrm61mog",
+            "region_label": "knocking",
+            "time": 1565514285103
+        },
+        {
+            "event": "add-proximity-label",
+            "region_id": "wavesurfer_37bsrm61mog",
+            "region_label": "near",
+            "time": 1565514286840
+        },
+        {
+            "event": "start-to-create",
+            "region_id": "wavesurfer_s22tae9ib58",
+            "time": 1565514293679
+        },
+        {
+            "event": "offline-create",
+            "region_end": 6.50085586453656,
+            "region_id": "wavesurfer_s22tae9ib58",
+            "region_start": 5.3903944229249765,
+            "time": 1565514294744
+        },
+        {
+            "event": "add-annotation-label",
+            "region_id": "wavesurfer_s22tae9ib58",
+            "region_label": "knocking",
+            "time": 1565514296034
+        },
+        {
+            "event": "add-proximity-label",
+            "region_id": "wavesurfer_s22tae9ib58",
+            "region_label": "far",
+            "time": 1565514297520
+        },
+        {
+            "event": "start-to-create",
+            "region_id": "wavesurfer_8qcntpo1088",
+            "time": 1565514308924
+        },
+        {
+            "event": "offline-create",
+            "region_end": 8.733109986959844,
+            "region_id": "wavesurfer_8qcntpo1088",
+            "region_start": 7.214723934144007,
+            "time": 1565514310410
+        },
+        {
+            "event": "start-to-create",
+            "region_id": "wavesurfer_2mikhpj03c8",
+            "time": 1565514313116
+        },
+        {
+            "event": "offline-create",
+            "region_end": 7.050420965742293,
+            "region_id": "wavesurfer_2mikhpj03c8",
+            "region_start": 7.044755346142234,
+            "time": 1565514313196
+        },
+        {
+            "event": "delete",
+            "region_id": "wavesurfer_2mikhpj03c8",
+            "time": 1565514320227
+        },
+        {
+            "event": "select-for-edit",
+            "region_id": "wavesurfer_8qcntpo1088",
+            "time": 1565514328190
+        },
+        {
+            "event": "add-proximity-label",
+            "region_id": "wavesurfer_8qcntpo1088",
+            "region_label": "far",
+            "time": 1565514329279
+        },
+        {
+            "event": "add-annotation-label",
+            "region_id": "wavesurfer_8qcntpo1088",
+            "region_label": "knocking",
+            "time": 1565514331302
+        },
+        {
+            "event": "select-for-edit",
+            "region_id": "wavesurfer_8qcntpo1088",
+            "time": 1565514337703
+        },
+        {
+            "event": "change-proximity-label",
+            "region_id": "wavesurfer_8qcntpo1088",
+            "region_label": "near",
+            "time": 1565514339119
+        },
+        {
+            "event": "play-region",
+            "region_id": "wavesurfer_s22tae9ib58",
+            "time": 1565514341370
+        },
+        {
+            "event": "play-region",
+            "region_id": "wavesurfer_37bsrm61mog",
+            "time": 1565514344377
+        },
+        {
+            "event": "play-region",
+            "region_id": "wavesurfer_44gda1hble",
+            "time": 1565514346625
+        },
+        {
+            "event": "play-region",
+            "region_id": "wavesurfer_44gda1hble",
+            "time": 1565514347167
+        },
+        {
+            "event": "start-to-create",
+            "region_id": "wavesurfer_2r1r5sq4d4o",
+            "time": 1565514349739
+        },
+        {
+            "event": "offline-create",
+            "region_end": 9.45830929576741,
+            "region_id": "wavesurfer_2r1r5sq4d4o",
+            "region_start": 7.2203895537440665,
+            "time": 1565514352121
+        },
+        {
+            "event": "add-annotation-label",
+            "region_id": "wavesurfer_2r1r5sq4d4o",
+            "region_label": "whistle",
+            "time": 1565514354182
+        },
+        {
+            "event": "add-proximity-label",
+            "region_id": "wavesurfer_2r1r5sq4d4o",
+            "region_label": "near",
+            "time": 1565514356866
+        }
+    ],
+    "annotations": [
+        {
+            "annotation": "whistle",
+            "end": 2.6199064384960784,
+            "id": "wavesurfer_44gda1hble",
+            "proximity": "near",
+            "start": 0.3309961200722026
+        },
+        {
+            "annotation": "knocking",
+            "end": 4.251604883313099,
+            "id": "wavesurfer_37bsrm61mog",
+            "proximity": "near",
+            "start": 3.0221654301002743
+        },
+        {
+            "annotation": "knocking",
+            "end": 6.50085586453656,
+            "id": "wavesurfer_s22tae9ib58",
+            "proximity": "far",
+            "start": 5.3903944229249765
+        },
+        {
+            "annotation": "knocking",
+            "end": 8.733109986959844,
+            "id": "wavesurfer_8qcntpo1088",
+            "proximity": "near",
+            "start": 7.214723934144007
+        },
+        {
+            "annotation": "whistle",
+            "end": 9.45830929576741,
+            "id": "wavesurfer_2r1r5sq4d4o",
+            "proximity": "near",
+            "start": 7.2203895537440665
+        }
+    ],
+    "deleted_annotations": [
+        {
+            "annotation": "",
+            "end": 3.005168571300097,
+            "id": "wavesurfer_s8780ia8lsg",
+            "proximity": "",
+            "start": 2.9995029517000376
+        },
+        {
+            "annotation": "",
+            "end": 7.050420965742293,
+            "id": "wavesurfer_2mikhpj03c8",
+            "proximity": "",
+            "start": 7.044755346142234
+        }
+    ],
+    "final_solution_shown": false,
+    "play_events": [
+        {
+            "audioSourceTime": 0,
+            "event": "click-play",
+            "time": 1565514252482
+        },
+        {
+            "audioSourceTime": 9.999818594104308,
+            "event": "click-play",
+            "time": 1565514263796
+        },
+        {
+            "audioSourceTime": 0.7778684807256244,
+            "event": "click-pause",
+            "time": 1565514264572
+        },
+        {
+            "audioSourceTime": 2.6199064384960784,
+            "event": "click-play",
+            "time": 1565514275985
+        },
+        {
+            "audioSourceTime": 3.4906547378158037,
+            "event": "click-pause",
+            "time": 1565514276861
+        },
+        {
+            "audioSourceTime": 4.251604883313099,
+            "event": "click-play",
+            "time": 1565514289227
+        },
+        {
+            "audioSourceTime": 5.598362252927614,
+            "event": "click-pause",
+            "time": 1565514290589
+        },
+        {
+            "audioSourceTime": 5.598362252927614,
+            "event": "click-play",
+            "time": 1565514291023
+        },
+        {
+            "audioSourceTime": 6.823214860637363,
+            "event": "click-pause",
+            "time": 1565514292249
+        },
+        {
+            "audioSourceTime": 6.50085586453656,
+            "event": "click-play",
+            "time": 1565514299182
+        },
+        {
+            "audioSourceTime": 9.438180127575109,
+            "event": "click-pause",
+            "time": 1565514302118
+        },
+        {
+            "audioSourceTime": 7.305373847744952,
+            "event": "click-play",
+            "time": 1565514305661
+        },
+        {
+            "audioSourceTime": 9.081700378357198,
+            "event": "click-pause",
+            "time": 1565514307439
+        },
+        {
+            "audioSourceTime": 7.050420965742293,
+            "event": "click-play",
+            "time": 1565514314632
+        },
+        {
+            "audioSourceTime": 8.745477655084688,
+            "event": "click-pause",
+            "time": 1565514316318
+        },
+        {
+            "audioSourceTime": 9.45830929576741,
+            "event": "click-play",
+            "time": 1565514360545
+        },
+        {
+            "audioSourceTime": 9.999818594104308,
+            "event": "click-play",
+            "time": 1565514362417
+        }
+    ],
+    "task_end_time": 1565514374793,
+    "task_start_time": 1565514249671,
+    "visualization": "spectrogram"
+}

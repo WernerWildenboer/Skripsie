@@ -12,7 +12,7 @@ $(function () {
   var $edge;
   var $selected;
   var currPhoto;
-
+  console.log("Render");
   /* 
   Get gallery json data & initialize page
   Semantic description:
@@ -29,9 +29,11 @@ $(function () {
   > initSlider
 
   */
-  $.getJSON("/gallery_json", function (data) {
+  $.getJSON("/user_hosted_gallery", function (data) {
     //Loads data from hosted json
-    data = JSON.parse(data);
+    console.log(data);
+    //data = JSON.parse(data);
+
     /*
     Selects children from header containing album as class
     as sets the text the loaded json value `data.album.name`.
@@ -48,7 +50,7 @@ $(function () {
       // i's element is loaded into photo
       photo = data.photos[i];
       thumbnails +=
-        "<div class=\"w3-cell w3-container\"><img data-index=" +
+        "<div style=\"display: inline-block;\"  class=\"w3-cell w3-container\"><img style=\"display: inline-block;\" data-index=" +
         photo.id +
         " src='/static/" +
         photo.thumb_url +
@@ -171,16 +173,16 @@ $(function () {
     if (photoID > 0 && photoID <= photos.length) {
       var photo = photos[photoID - 1];
       $image.attr("src", "/static/" + photo.url);
-      if ($image.attr("class") == "photo w3-animate-right") {
+      /*if ($image.attr("class") == "photo w3-animate-right") {
         $image.attr("class", "photo w3-animate-left");
       } else {
         $image.attr("class", "photo w3-animate-right");
-      }
+      }*/
       //$image.addClass("photo");
       $caption.children(".title").text(photo.title);
       $caption
         .children(".data")
-        .text("Taken on " + photo.date + " in " + photo.location);
+        .text("Uploaded on " + photo.date + " Description :" + photo.description);
     }
   }
 

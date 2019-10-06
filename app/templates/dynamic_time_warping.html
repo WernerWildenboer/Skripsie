@@ -1,0 +1,30 @@
+{% extends "base.html" %} {% block content %}
+<div class="w3-container">
+  <div class="row header">
+    <h3 class="w3-opacity w3-myfont">Selected Audio to search through</h3>
+    <form class="w3-container" action="{{ url_for('dynamic_time_warping') }}" method="post"
+      id="dynamic_time_warping_form">
+      <select class="w3-select" name="audio_snippet" required>
+        <option value="" disabled selected>Choose the audio snippet to search through</option>
+        {% for audio_snippet in audio_snippet %}
+        <option value="{{audio_snippet}}">{{audio_snippet}}</option>
+
+        {% endfor %}
+
+      </select>
+      <h3 class="w3-opacity w3-myfont">Selected training data</h3>
+
+      {% for audio_snippet in audio_snippet %}
+      <ul>
+        <li><input type="checkbox" name="chek_box" value="{{ audio_snippet }}">{{ audio_snippet }}</li>
+      </ul>
+      {% endfor %}
+
+
+      <button type="submit" class="w3-button w3-block w3-section w3-theme w3-ripple w3-padding"
+        name="load">LOAD</button>
+    </form>
+  </div>
+</div>
+
+{% endblock %}

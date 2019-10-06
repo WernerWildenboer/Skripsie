@@ -13,14 +13,14 @@ try:
     # This lets you run tests from the project root,
     # and therefore allows CI to work properly
     path.append('./app')
-    from __init__ import neo4j_connect
+    from __init__ import neo4j_connect, seconds_to_milliseconds
 
 except ImportError:
     # If that fails it's probably because
     # you are trying to run the tests from the tests directory,
     # and so import relative to the tests directory
     path.append('../src')
-    from __init__ import neo4j_connect
+    from __init__ import neo4j_connect, seconds_to_milliseconds
 
 
 def test_neo4j_connect_add():
@@ -28,7 +28,7 @@ def test_neo4j_connect_add():
     Test the neo4j_connect function in __init__.py
     and if a node and relationship can be created.
     """
-    neo4j_bolt = os.environ["NEO4J_BOLT"] if "NEO4J_BOLT" in os.environ else 'bolt://localhost:7687'
+    neo4j_bolt = os.environ["NEO4J_BOLT"] if "NEO4J_BOLT" in os.environ else 'bolt://localhost:11005'
     neo4j_usrname = os.environ["NEO4J_USERNAME"] if "NEO4J_USERNAME" in os.environ else 'neo4j'
     neo4j_password = os.environ["NEO4J_PASSWORD"] if "NEO4J_PASSWORD" in os.environ else 'skripsie'
 
@@ -51,7 +51,7 @@ def test_neo4j_connect_delete():
     Test the neo4j_connect function in __init__.py
     and if a node and relationship can be deleted .
     """
-    neo4j_bolt = os.environ["NEO4J_BOLT"] if "NEO4J_BOLT" in os.environ else 'bolt://localhost:7687'
+    neo4j_bolt = os.environ["NEO4J_BOLT"] if "NEO4J_BOLT" in os.environ else 'bolt://localhost:11005'
     neo4j_usrname = os.environ["NEO4J_USERNAME"] if "NEO4J_USERNAME" in os.environ else 'neo4j'
     neo4j_password = os.environ["NEO4J_PASSWORD"] if "NEO4J_PASSWORD" in os.environ else 'skripsie'
 
@@ -68,21 +68,9 @@ def test_neo4j_connect_delete():
     assert not list_test, "Could not connect to Neo4j."
 
 
-def test_login_logout(client):
+def test_seconds_to_milliseconds():
     """
-    Tests  login and logout.
+    Test the seconds_to_milliseconds function in __init__.py
+    to see if seconds can be converted to milliseconds.
     """
-    rv = login(
-        client, flaskr.app.config['USERNAME'], flaskr.app.config['PASSWORD'])
-    assert b'You were logged in' in rv.data
-
-    rv = logout(client)
-    assert b'You were logged out' in rv.data
-
-    rv = login(
-        client, flaskr.app.config['USERNAME'] + 'x', flaskr.app.config['PASSWORD'])
-    assert b'Invalid username' in rv.data
-
-    rv = login(client, flaskr.app.config['USERNAME'],
-               flaskr.app.config['PASSWORD'] + 'x')
-    assert b'Invalid password' in rv.data
+    assert seconds_to_milliseconds(1) == 1000
