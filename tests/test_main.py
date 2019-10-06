@@ -13,14 +13,14 @@ try:
     # This lets you run tests from the project root,
     # and therefore allows CI to work properly
     path.append('./app')
-    from __init__ import neo4j_connect
+    from __init__ import neo4j_connect, seconds_to_milliseconds
 
 except ImportError:
     # If that fails it's probably because
     # you are trying to run the tests from the tests directory,
     # and so import relative to the tests directory
     path.append('../src')
-    from __init__ import neo4j_connect
+    from __init__ import neo4j_connect, seconds_to_milliseconds
 
 
 def test_neo4j_connect_add():
@@ -66,3 +66,11 @@ def test_neo4j_connect_delete():
 
     # Assertions
     assert not list_test, "Could not connect to Neo4j."
+
+
+def test_seconds_to_milliseconds():
+    """
+    Test the seconds_to_milliseconds function in __init__.py
+    to see if seconds can be converted to milliseconds.
+    """
+    assert seconds_to_milliseconds(1) == 1000

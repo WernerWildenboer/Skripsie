@@ -82,16 +82,19 @@
     <a id="home" href="{{ url_for('index') }}" class="w3-bar-item w3-button"><i id="home_icon"
         class="fa fa-home"></i></a>
     {% if current_user.is_authenticated %}
+
     <a class="w3-bar-item w3-button" href="{{ url_for('logout') }}"><i
         class="fas fa-sign-out-alt fa-rotate-180"></i></a>
-    {% else %}
-    <a class="w3-bar-item w3-button" href="{{ url_for('login') }}"><i class="fas fa-sign-in-alt"></i></a>
-    {% endif %}
     <a href="{{ url_for('audio_capturing') }}" class="w3-bar-item w3-button"><i class=" fas fa-microphone"></i></a>
-    <a id="home" href="{{ url_for('register') }}" class="w3-bar-item w3-button"><i class="fas fa-id-card"></i></a>
+
     <a id="home" href="{{ url_for('audio_labeling') }}" class="w3-bar-item w3-button"><i class="fas fa-tags"></i></a>
     <a href="{{ url_for('upload_page') }}" class="w3-bar-item w3-button"><i class="fas fa-upload"></i></a>
     <a href="{{ url_for('dynamic_time_warping') }}" class="w3-bar-item w3-button"><i class="far fa-clock"></i></a>
+    {% else %}
+    <a id="home" href="{{ url_for('register') }}" class="w3-bar-item w3-button"><i class="fas fa-id-card"></i></a>
+    <a class="w3-bar-item w3-button" href="{{ url_for('login') }}"><i class="fas fa-sign-in-alt"></i></a>
+    {% endif %}
+
   </div>
 
   <div id="main" style="margin-left:3%">

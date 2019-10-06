@@ -191,7 +191,22 @@ def user_hosted_gallery():
     gallery_json_var = open(json_path).read()
     return gallery_json_var
 
+@appvar.route('/time_taken_to_lable', methods=['GET', 'POST'])
+def time_take_to_lable():
+    """
+    Loges the time taken by user to neo4j.
+    """
+    if request.method == 'POST':
+        number_of_images = int(request.form['images'])
+        time_taken_milliseconds = float(request.form['time'])
+        time_taken_seconds = time_taken_milliseconds / 1000.0
+        create_user_experiment_cypher = (("MATCH (a: User {username:'%s' })"
+                                 " MERGE (c: Experiment {username:'%s',time_taken_milliseconds:'%d',time_taken_seconds:'%d',number_of_images:'%d'})"
+                                 " MERGE (c)<-[:TOOK]-(a)") % (session['username'], session['username'],time_taken_milliseconds, time_taken_seconds, number_of_images))
 
+    GRAPH_INIT.run(create_user_experiment_cypher)
+    return redirect(url_for('index'))
+        
 @appvar.route('/uploadfile', methods=['GET', 'POST'])
 @login_required
 def uploadfile():
@@ -316,16 +331,28 @@ def audio_capturing():
     if request.method == 'POST':
         album = request.form['album']
         session['album'] = album
-    # TODO : move to KG
     albums = []
-    album_path = os.path.join(
-        appvar.root_path, "static", "images", "albums.csv")
-    with open(album_path, newline='') as csvfile:
-        album_names_in = csv.DictReader(csvfile, delimiter=',')
-        for row in album_names_in:
-            albums.append(row['albumName'])
-    csvfile.close()
+    #album_path = os.path.join(
+    #    appvar.root_path, "static", "images", "albums.csv")
+    #with open(album_path, newline='') as csvfile:
+    #    album_names_in = csv.DictReader(csvfile, delimiter=',')
+    #    for row in album_names_in:
+    #        albums.append(row['albumName'])
+    #csvfile.close()
+    albums = get_list_of_albums()
     return render_template('audio_capturing.html', title='Audio Capturing', albums=albums)
+
+def get_list_of_albums():
+    """
+    Returns:
+    A list of all albums in the neo4j database.
+    """
+    get_album_cypher = (("MATCH (n:Image)" 
+                        "RETURN DISTINCT n.album AS album"))
+    df = GRAPH_INIT.run(get_album_cypher).to_data_frame()
+    album_list = df['album'].values.tolist()
+    return album_list
+
 
 @appvar.route('/audio_capturing_V1', methods=['GET', 'POST'])
 @login_required
@@ -338,15 +365,9 @@ def audio_capturing_V1():
     if request.method == 'POST':
         album = request.form['album']
         session['album'] = album
-    # TODO : move to KG
+    
     albums = []
-    album_path = os.path.join(
-        appvar.root_path, "static", "images", "albums.csv")
-    with open(album_path, newline='') as csvfile:
-        album_names_in = csv.DictReader(csvfile, delimiter=',')
-        for row in album_names_in:
-            albums.append(row['albumName'])
-    csvfile.close()
+    albums = get_list_of_albums()
     return render_template('audio_capturing_v1.html', title='Audio Capturing', albums=albums)
 
 @appvar.route('/audio_capturing_V2', methods=['GET', 'POST'])
@@ -360,15 +381,8 @@ def audio_capturing_V2():
     if request.method == 'POST':
         album = request.form['album']
         session['album'] = album
-    # TODO : move to KG
     albums = []
-    album_path = os.path.join(
-        appvar.root_path, "static", "images", "albums.csv")
-    with open(album_path, newline='') as csvfile:
-        album_names_in = csv.DictReader(csvfile, delimiter=',')
-        for row in album_names_in:
-            albums.append(row['albumName'])
-    csvfile.close()
+    albums = get_list_of_albums()
     return render_template('audio_capturing_v2.html', title='Audio Capturing', albums=albums)
 
 def update_kg_audio(username, image_title, language, file_location):
@@ -387,15 +401,35 @@ def update_kg_audio(username, image_title, language, file_location):
     return True
 
 
-@appvar.route('/')
-@appvar.route('/index')
+@appvar.route('/',methods=['GET', 'POST'])
+@appvar.route('/index',methods=['GET', 'POST'])
 def index():
     """
     Semantic description:
     Returns: a redirection url to index.html
     """
+    if request.method == 'POST':
+        consent = request.form['consent']
+        post_user_consent(consent)
+    
     return render_template('index.html', title='Home')
 
+def post_user_consent(consent):
+    """
+    Finds the current logged in user and set conset_given to true
+    on the user node.
+    """
+    if consent == 'on':
+        set_conset_given_cypher = (("MATCH (a:User)"
+                                    "WHERE a.username ='%s' "
+                                    "SET a.conset_given = True"
+                                    )
+                                % ( session['username']))
+
+        GRAPH_INIT.run(set_conset_given_cypher)
+        return True
+    else:
+        return False
 
 @appvar.route('/login', methods=['GET', 'POST'])
 def login():
@@ -565,8 +599,18 @@ def upload_page():
                     except OSError as exc:  # Guard against race condition
                         if exc.errno != errno.EEXIST:
                             raise
-                # Save file
-                file.save(os.path.join(uploadfile_path))
+                # Resize Image 
+                with Image.open(file) as image:
+                    width, height = image.size
+                    if (width >= 250 and height >= 250):
+                        # Save file
+                        image.save(os.path.join(uploadfile_path))
+                    else: 
+                        cover = resizeimage.resize_cover(
+                            image, [250, 250], validate=False)
+                        cover.save(os.path.join(
+                            uploadfile_path), image.format)
+                
                 # Resize image and create thumbnail
                 filename_thumbnail = str(i)+"_"+title_of_image+"_" + \
                     "_thumbnail_" + fname + str(uuid.uuid4()) + ext
@@ -581,6 +625,7 @@ def upload_page():
                         uploadfile_path_thumbnail), image.format)
 
                 # TODO: Send to json formatter
+                # TODO: Fix bug that load multiple entries to album csv file 
 
                 # Clean URL's
                 uploadfile_path_short = os.path.join(
@@ -631,11 +676,6 @@ def generate_gallery_json(album, file_path):
     requires to load the carousel
 
     Creates : <album>_<date>.json
-    """
-    """
-    Generates gallery.json that the dashboard requires
-    to display images.
-    Returns json of album image.
     """
     gallery_file_json_output_album = {}
     gallery_file_json_output_album["name"] = album
@@ -711,115 +751,124 @@ def to_mfcc(audio_file_path):
     Convert audio to MFCC and stores in a matrix.
     Exports matrix as '.txt'.
     """
-    y, sr = librosa.load(audio_file_path)
-    # Let's make and display a mel-scaled power (energy-squared) spectrogram
-    S = librosa.feature.melspectrogram(y, sr=sr, n_mels=128)
+    try:
+        y, sr = librosa.load(audio_file_path)
+        # Let's make and display a mel-scaled power (energy-squared) spectrogram
+        S = librosa.feature.melspectrogram(y, sr=sr, n_mels=128)
 
-    # Convert to log scale (dB). We'll use the peak power (max) as reference.
-    log_S = librosa.power_to_db(S, ref=np.max)
-    # Next, we'll extract the top 13 Mel-frequency cepstral coefficients (MFCCs)
-    mfcc = librosa.feature.mfcc(S=log_S, n_mfcc=13)
+        # Convert to log scale (dB). We'll use the peak power (max) as reference.
+        log_S = librosa.power_to_db(S, ref=np.max)
+        # Next, we'll extract the top 13 Mel-frequency cepstral coefficients (MFCCs)
+        mfcc = librosa.feature.mfcc(S=log_S, n_mfcc=13)
 
-    # Let's pad on the first and second deltas while we're at it
-    delta_mfcc = librosa.feature.delta(mfcc)
-    delta2_mfcc = librosa.feature.delta(mfcc, order=2)
+        # Let's pad on the first and second deltas while we're at it
+        delta_mfcc = librosa.feature.delta(mfcc)
+        delta2_mfcc = librosa.feature.delta(mfcc, order=2)
 
-    # For future use, we'll stack these together into one matrix
-    # .txt
-    mfcc_matrix = np.vstack([mfcc, delta_mfcc, delta2_mfcc])
+        # For future use, we'll stack these together into one matrix
+        # .txt
+        mfcc_matrix = np.vstack([mfcc, delta_mfcc, delta2_mfcc])
 
-    mfcc_file_name_txt = 'MFCC_'+session['file_name'][:-4] + '.txt'
+        mfcc_file_name_txt = 'MFCC_'+session['file_name'][:-4] + '.txt'
 
-    mfcc_path_txt = os.path.join(
-        appvar.root_path, "static", "audio", session['username'], "mfcc", mfcc_file_name_txt)
-    f = open(mfcc_path_txt, "w")
-    np.savetxt(f, mfcc_matrix, fmt='%1.10f')
-    f.close()
+        mfcc_path_txt = os.path.join(
+            appvar.root_path, "static", "audio", session['username'], "mfcc", mfcc_file_name_txt)
+        f = open(mfcc_path_txt, "w")
+        np.savetxt(f, mfcc_matrix, fmt='%1.10f')
+        f.close()
 
-    # .csv
-    mfcc_file_name_csv = 'MFCC_'+session['file_name'][:-4] + '.csv'
+        # .csv
+        mfcc_file_name_csv = 'MFCC_'+session['file_name'][:-4] + '.csv'
 
-    mfcc_path_csv = os.path.join(
-        appvar.root_path, "static", "audio", session['username'], "mfcc", mfcc_file_name_csv)
-    np.savetxt(mfcc_path_csv, mfcc_matrix, delimiter=",")
+        mfcc_path_csv = os.path.join(
+            appvar.root_path, "static", "audio", session['username'], "mfcc", mfcc_file_name_csv)
+        np.savetxt(mfcc_path_csv, mfcc_matrix, delimiter=",")
 
-    return mfcc_matrix
+        return mfcc_matrix
+    except:
+        print("Audio clip too short")
 
 def to_stft(audio_file_path):
     """
     Convert audio to Short-time Fourier transform (STFT) and stores in a matrix.
     Exports matrix as '.txt'.
     """
-    y, sr = librosa.load(audio_file_path)
-    # Let's make and display a mel-scaled power (energy-squared) spectrogram
-    S = librosa.feature.melspectrogram(y, sr=sr, n_mels=128, n_fft=2048)
+    try:
+        y, sr = librosa.load(audio_file_path)
+        # Let's make and display a mel-scaled power (energy-squared) spectrogram
+        S = librosa.feature.melspectrogram(y, sr=sr, n_mels=128, n_fft=2048)
 
-    # Convert to log scale (dB). We'll use the peak power (max) as reference.
-    log_S = librosa.power_to_db(S, ref=np.max)
-    # Next, we'll extract the top 13 Mel-frequency cepstral coefficients (MFCCs)
-    stft = librosa.stft(y)
+        # Convert to log scale (dB). We'll use the peak power (max) as reference.
+        log_S = librosa.power_to_db(S, ref=np.max)
+        # Next, we'll extract the top 13 Mel-frequency cepstral coefficients (MFCCs)
+        stft = librosa.stft(y)
 
-    stft_matrix = np.abs(librosa.stft(y))
+        stft_matrix = np.abs(librosa.stft(y))
 
 
-    # .csv
-    stft_file_name_csv = 'STFT'+session['file_name'][:-4] + '.csv'
+        # .csv
+        stft_file_name_csv = 'STFT'+session['file_name'][:-4] + '.csv'
 
-    stft_path_csv = os.path.join(
-        appvar.root_path, "static", "audio", session['username'], "stft", stft_file_name_csv)
-    np.savetxt(stft_path_csv, stft_matrix, delimiter=",")
+        stft_path_csv = os.path.join(
+            appvar.root_path, "static", "audio", session['username'], "stft", stft_file_name_csv)
+        np.savetxt(stft_path_csv, stft_matrix, delimiter=",")
 
-    return stft_matrix
+        return stft_matrix
+    except:
+        print("Audio clip too short")
 
 def to_spectral_centroid(audio_file_path):
     """
     Convert audio to spectral_centroid and stores in a matrix.
     Exports matrix as '.txt'.
     """
-    y, sr = librosa.load(audio_file_path)
-    # Let's make and display a mel-scaled power (energy-squared) spectrogram
-    S = librosa.feature.melspectrogram(y, sr=sr, n_mels=128, n_fft=2048)
+    try:
+        y, sr = librosa.load(audio_file_path)
+        # Let's make and display a mel-scaled power (energy-squared) spectrogram
+        S = librosa.feature.melspectrogram(y, sr=sr, n_mels=128, n_fft=2048)
 
-    # Convert to log scale (dB). We'll use the peak power (max) as reference.
-    log_S = librosa.power_to_db(S, ref=np.max)
+        # Convert to log scale (dB). We'll use the peak power (max) as reference.
+        log_S = librosa.power_to_db(S, ref=np.max)
 
-    spectral_centroid_array = librosa.feature.spectral_centroid(y=y, sr=sr)
+        spectral_centroid_array = librosa.feature.spectral_centroid(y=y, sr=sr)
 
 
-    # .csv
-    spectral_centroid_file_name_csv = 'spectral_centroid_'+session['file_name'][:-4] + '.csv'
+        # .csv
+        spectral_centroid_file_name_csv = 'spectral_centroid_'+session['file_name'][:-4] + '.csv'
 
-    spectral_centroid_path_csv = os.path.join(
-        appvar.root_path, "static", "audio", session['username'], "spectral_centroid", spectral_centroid_file_name_csv)
-    np.savetxt(spectral_centroid_path_csv, spectral_centroid_array, delimiter=",")
+        spectral_centroid_path_csv = os.path.join(
+            appvar.root_path, "static", "audio", session['username'], "spectral_centroid", spectral_centroid_file_name_csv)
+        np.savetxt(spectral_centroid_path_csv, spectral_centroid_array, delimiter=",")
 
-    return spectral_centroid_array
+        return spectral_centroid_array
+    except:
+        print("Audio clip too short")
 
 def to_zero_crossing_rate(audio_file_path):
     """
     Convert audio to zero_crossing_rate and stores in a matrix.
     Exports matrix as '.txt'.
     """
-    y, sr = librosa.load(audio_file_path)
-    # Let's make and display a mel-scaled power (energy-squared) spectrogram
-    S = librosa.feature.melspectrogram(y, sr=sr, n_mels=128)
+    try:
+        y, sr = librosa.load(audio_file_path)
+        # Let's make and display a mel-scaled power (energy-squared) spectrogram
+        S = librosa.feature.melspectrogram(y, sr=sr, n_mels=128)
 
-    # Convert to log scale (dB). We'll use the peak power (max) as reference.
-    log_S = librosa.power_to_db(S, ref=np.max)
+        # Convert to log scale (dB). We'll use the peak power (max) as reference.
+        log_S = librosa.power_to_db(S, ref=np.max)
 
-    zero_crossing_rate_array = librosa.feature.zero_crossing_rate(y)
+        zero_crossing_rate_array = librosa.feature.zero_crossing_rate(y)
 
-    # .csv
-    zero_crossing_rate_file_name_csv = 'zero_crossing_rate_'+session['file_name'][:-4] + '.csv'
+        # .csv
+        zero_crossing_rate_file_name_csv = 'zero_crossing_rate_'+session['file_name'][:-4] + '.csv'
 
-    spectral_centroid_path_csv = os.path.join(
-        appvar.root_path, "static", "audio", session['username'], "zero_crossing_rate", zero_crossing_rate_file_name_csv)
-    np.savetxt(spectral_centroid_path_csv, zero_crossing_rate_array, delimiter=",")
+        spectral_centroid_path_csv = os.path.join(
+            appvar.root_path, "static", "audio", session['username'], "zero_crossing_rate", zero_crossing_rate_file_name_csv)
+        np.savetxt(spectral_centroid_path_csv, zero_crossing_rate_array, delimiter=",")
 
-    return zero_crossing_rate_array
-
-
-
+        return zero_crossing_rate_array
+    except:
+        print("Audio clip too short")
 
 @appvar.route('/audio_labeling', methods=['GET', 'POST'])
 @login_required
@@ -829,9 +878,6 @@ def audio_labeling():
     renders audioLabeling.html.
     Exports matrix as '.txt'.
     """
-
-    # list_training_data_paths =  ['/home/werner/Desktop/Skripsie/Test 3/Skripsie/app/static/audio_samples/elias_mothers_milk_word.m4a','/home/werner/Desktop/Skripsie/Test 3/Skripsie/app/static/audio_samples/chris_mothers_milk_word.m4a','/home/werner/Desktop/Skripsie/Test 3/Skripsie/app/static/audio_samples/yaoquan_mothers_milk_word.m4a']
-    # dynamic_time_warping('/home/werner/Desktop/Skripsie/Test 3/Skripsie/app/static/audio_samples/elias_mothers_milk_sentence.m4a',list_training_data_paths)
     return render_template('audio_labeling.html', title="Audio Labler")
 
 @appvar.route('/dynamic_time_warping', methods=['GET', 'POST'])
@@ -849,8 +895,6 @@ def dynamic_time_warping():
     
 
     audio_snippet = get_list_of_all_audio_file_paths()
-    # list_training_data_paths =  ['/home/werner/Desktop/Skripsie/Test 3/Skripsie/app/static/audio_samples/elias_mothers_milk_word.m4a','/home/werner/Desktop/Skripsie/Test 3/Skripsie/app/static/audio_samples/chris_mothers_milk_word.m4a','/home/werner/Desktop/Skripsie/Test 3/Skripsie/app/static/audio_samples/yaoquan_mothers_milk_word.m4a']
-    # dynamic_time_warping('/home/werner/Desktop/Skripsie/Test 3/Skripsie/app/static/audio_samples/elias_mothers_milk_sentence.m4a',list_training_data_paths)
     return render_template('dynamic_time_warping.html', title="Dynamic Time Warping",audio_snippet=audio_snippet)
 
 
@@ -1034,3 +1078,4 @@ if __name__ == '__main__':
     # TODO : change port
     appvar.debug = True
     appvar.run(ost='0.0.0.0', port=port)
+ 

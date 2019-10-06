@@ -1,7 +1,8 @@
 {% extends "base.html" %} {% block content %}
 <div class="w3-container">
   <div class="w3-padding-16">
-    <p>Explain</p>
+    <p>The goal of the audio capturing page was to create an interface where a non-written language native speaker could
+      vocaly label images rapidly.</p>
   </div>
 
 </div>
@@ -33,14 +34,19 @@
         </div>
       </div>
       <button class="far fa-stop-circle w3-btn w3-left w3-xlarge" onClick="myCounterStop()"></button>
-      <button style="display: none;" id="stop-btn-v1" class="next fa fa-arrow-right w3-jumbo"
+      <!--Stop Button-->
+      <button id="stop-btn-v1" class="next fa fa-arrow-right w3-jumbo"
+        onclick="recordingControl();increment_images_labled();"></button>
+
+      <!--Start Button-->
+      <button style="display: none;" id="start-btn-v1" class="next fa fa-arrow-right w3-jumbo"
         onclick="recordingControl()"></button>
-      <button id="start-btn-v1" class="next fa fa-arrow-right w3-jumbo" onclick="recordingControl()"></button>
       <button class="fas fa-volume-up w3-button w3-xlarge w3-right" onclick="openRightMenu()"></button>
     </div>
   </div>
   <div id="header" class="w3-card ">
-    <div class="w3-sidebar w3-bar-block w3-card w3-animate-right" style="display:none;right:0;" id="rightMenu">
+    <div class="w3-sidebar w3-bar-block w3-card w3-animate-right" style="display:none;right:0;;width:25%;"
+      id="rightMenu">
       <button onclick="closeRightMenu()" class="w3-bar-item w3-button w3-large">Close &times;</button>
       <h4>Stored Recordings</h4>
       <ul id="recordingslist"></ul>
@@ -80,28 +86,52 @@
 
 </div>
 <script>
+  $(document).ready(function () {
+    Initialize();
+    startRecording();
+  });
   var c = 0;
+  var number_of_images_labled = 1;
+  var isRecording = true;
+  var number_of_images_to_labled = 5;
+
   function myCounter() {
     c++;
   }
-  function myCounterStop() {
-    clearInterval(myTimer)
-    console.log(c);
+  function increment_images_labled() {
+
+    if (number_of_images_labled == number_of_images_to_labled) {
+      myCounterStop();
+      number_of_images_labled = 0;
+    }
+    number_of_images_labled++;
   }
-  var isNotRecording = true;
+  function myCounterStop() {
+    $.ajax({
+      type: 'POST',
+      url: '/time_taken_to_lable',
+      dataType: 'json',
+      data: { time: c, images: number_of_images_labled }
+    }).done(function (data) {
+      console.log(c);
+    });
+    clearInterval(myTimer)
+    c = 0;
+  }
+
 
   function recordingControl() {
-    if (isNotRecording) {
+    if (isRecording) {
       myTimer = setInterval(myCounter, 1);
       document.getElementById("start-btn-v1").style.display = "none";
       document.getElementById("stop-btn-v1").style.display = "";
-      isNotRecording = false;
+      isRecording = true;
       return;
     }
     myTimer = setInterval(myCounter, 1);
     document.getElementById("stop-btn-v1").style.display = "none";
     document.getElementById("start-btn-v1").style.display = "";
-    isNotRecording = true;
+    isRecording = false;
     //return;
   }
 

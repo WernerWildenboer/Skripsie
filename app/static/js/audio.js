@@ -137,7 +137,7 @@ window.onload = function () {
         var username = document.getElementById("username").innerHTML;
         var image_title = document.getElementById("title").innerHTML;
         hf.download = username + "_" + image_title + "_" + new Date().toISOString() + '.wav';
-        console.log(hf.download);
+        //console.log(hf.download);
         hf.innerHTML = hf.download;
         hf.setAttribute("id", "to_click");
         li.appendChild(au);
@@ -203,7 +203,7 @@ window.onload = function () {
         var username = document.getElementById("username").innerHTML;
         var image_title = document.getElementById("title").innerHTML;
         hf.download = username + "_" + image_title + "_" + new Date().toISOString() + '.wav';
-        console.log(hf.download);
+        //console.log(hf.download);
         hf.innerHTML = hf.download;
         hf.setAttribute("id", "to_click");
         li.appendChild(au);
@@ -271,7 +271,7 @@ function submit(blob) {
       contentType: false,
       enctype: false
     }).done(function (data) {
-      console.log(data);
+      console.log("Done");
     });
   }
 

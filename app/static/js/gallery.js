@@ -173,11 +173,11 @@ $(function () {
     if (photoID > 0 && photoID <= photos.length) {
       var photo = photos[photoID - 1];
       $image.attr("src", "/static/" + photo.url);
-      if ($image.attr("class") == "photo w3-animate-right") {
+      /*if ($image.attr("class") == "photo w3-animate-right") {
         $image.attr("class", "photo w3-animate-left");
       } else {
         $image.attr("class", "photo w3-animate-right");
-      }
+      }*/
       //$image.addClass("photo");
       $caption.children(".title").text(photo.title);
       $caption

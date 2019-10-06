@@ -1,7 +1,8 @@
 {% extends "base.html" %} {% block content %}
 <div class="w3-container">
   <div class="w3-padding-16">
-    <p>Explain</p>
+    <p>The goal of the audio capturing page was to create an interface where a non-written language native speaker could
+      vocaly label images rapidly.</p>
   </div>
 
 </div>
@@ -34,8 +35,9 @@
       </div>
       <button class="far fa-stop-circle w3-btn w3-left w3-xlarge" onClick="myCounterStop()"></button>
       <button class="prev fa fa-arrow-left w3-xxxlarge"></button>
-      <button class="fas fa-microphone-slash w3-btn  w3-round-xlarge w3-center w3-xxxlarge  w3-hover-light-blue"
-        id="stop-btn" type="button" disabled></button>
+      <button onclick="increment_images_labled()"
+        class="fas fa-microphone-slash w3-btn  w3-round-xlarge w3-center w3-xxxlarge  w3-hover-light-blue" id="stop-btn"
+        type="button" disabled></button>
       <button class="next fa fa-arrow-right w3-xxxlarge w3-red"></button>
       <button class="fas fa-microphone w3-btn w3-round-xlarge w3-center w3-xxxlarge w3-hover-red" id="start-btn"
         type="button" onclick="myTimer = setInterval(myCounter, 1)"></button>
@@ -44,7 +46,8 @@
     </div>
   </div>
   <div id="header" class="w3-card ">
-    <div class="w3-sidebar w3-bar-block w3-card w3-animate-right" style="display:none;right:0;" id="rightMenu">
+    <div class="w3-sidebar w3-bar-block w3-card w3-animate-right" style="display:none;right:0;;width:25%;"
+      id="rightMenu">
       <button onclick="closeRightMenu()" class="w3-bar-item w3-button w3-large">Close &times;</button>
       <h4>Stored Recordings</h4>
       <ul id="recordingslist"></ul>
@@ -89,12 +92,33 @@
 </div>
 <script>
   var c = 0;
+  var number_of_images_labled = 1;
+  var isRecording = true;
+  var number_of_images_to_labled = 5;
   function myCounter() {
     c++;
   }
+  function increment_images_labled() {
+
+    if (number_of_images_labled == number_of_images_to_labled) {
+      myCounterStop();
+      number_of_images_labled = 0;
+    }
+    number_of_images_labled++;
+  }
+
   function myCounterStop() {
+
+    $.ajax({
+      type: 'POST',
+      url: '/time_taken_to_lable',
+      dataType: 'json',
+      data: { time: c, images: number_of_images_labled }
+    }).done(function (data) {
+      console.log(c);
+    });
     clearInterval(myTimer)
-    console.log(c);
+    c = 0;
   }
   function dropDownFunction() {
     var x = document.getElementById("Demo");

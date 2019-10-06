@@ -1,13 +1,77 @@
 {% extends "base.html" %} {% block content %}
 <div class="w3-container">
   <div class="w3-padding-16">
-    <p>Explain</p>
+    <p>In short a non-written language native speaker registers on the application and logs in. He/she then chooses what
+      images to label with vocal audio snippets, he/she could even upload his/her own images. The audio snippets are
+      converted to the following formats MFCC | STFT | spectral centroid | zero crossing and stored inside a knowledge
+      graph. Admin users can label and snip the audio clips and can perform DTW on the audio.
+    </p>
   </div>
 </div>
 <div class="w3-container"></div>
 <div class="w3-container w3-center">
+  <div class="w3-container w3-teal">
+    {% if current_user.is_authenticated %}
+    <form class="w3-container" id="consentform" action="{{ url_for('index') }}" method="post">
 
+      <h1>Consent to take part in research</h1>
+  </div>
+  <ul class="w3-ul">
 
+    <li style="display: flex;
+      flex-flow: row wrap;
+      align-items: center;padding:4px 8px;">
+
+      <p style=" padding: 10px;"> I </p>
+      <input type="text" style="width: 30%;  vertical-align: middle;" name="name" required>
+
+      <p style=" padding: 10px;"> voluntarily agree
+        to participate in
+        this research study.</p>
+    </li>
+
+    <li class="w3-padding-small">I understand that even if I agree
+      to participate now, I
+      can withdraw at any time or
+      refuse to answer
+      any question without any consequences of any kind</li>
+    <li class="w3-padding-small">I understand that I can withdraw permission to use data from my interview within two
+      weeks after
+      the interview, in which case the material will be deleted.</li>
+    <li class="w3-padding-small">I have had the purpose and nature of the study explained to me in writing and I have
+      had the
+      opportunity to ask questions about the study.</li>
+    <li class="w3-padding-small">I understand that participation involves labeling images vocaly.</li>
+    <li class="w3-padding-small">I understand that I will not benefit directly from participating in this research.</li>
+    <li class="w3-padding-small">I agree to my interview being audio-recorded.</li>
+    <li class="w3-padding-small">I understand that all information I provide for this study will be treated
+      confidentially.</li>
+    <li class="w3-padding-small">I understand that in any report on the results of this research my identity will remain
+      anonymous.
+      This will be done by changing my name and disguising any details of my interview which may
+      reveal my identity or the identity of people I speak about. </li>
+    <li class="w3-padding-small">I understand that disguised extracts from my interview may be quoted in Werner
+      Wildenboer's Skripsie.</li>
+    <li class="w3-padding-small">I understand that if I inform the researcher that myself or someone else is at risk of
+      harm they
+      may have to report this to the relevant authorities - they will discuss this with me first but may be
+      required to report with or without my permission. </li>
+    <li class="w3-padding-small">I understand that signed consent forms and original audio recordings will be retained
+      in NWLPAs's database until 2020 Jan.</li>
+    <li class="w3-padding-small">I understand that a transcript of my interview in which all identifying information has
+      been
+      removed will be retained for 3 months.</li>
+    <li class="w3-padding-small">I understand that under freedom of information legalisation I am entitled to access the
+      information I have provided at any time while it is in storage as specified above.</li>
+    <li class="w3-padding-small">I understand that I am free to contact any of the people involved in the research to
+      seek further
+      clarification and information.</li>
+  </ul>
+  <input class="w3-check" type="checkbox" name="consent" required>
+  <label>I agree to the above terms.</label>
+  <button type="submit" class="w3-button w3-block w3-section w3-theme w3-ripple w3-padding">SUBMIT</button>
+  </form>
+  {% endif %}
 </div>
 <div class="w3-container"></div>
 
