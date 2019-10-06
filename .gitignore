@@ -32,4 +32,7 @@ coverage.xml
 .pytest_cache
 app/static/audio/*
 app/static/images/*
+app/static/DTW/*
+app/static/lables/*
+app/static/audio_samples/*
 .venv

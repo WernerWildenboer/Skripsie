@@ -1,57 +1,76 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h1>Register</h1>
-<form action="{{ url_for('register') }}" method="post" id="reg_form">
-    <div class="reg_container">
-        <p>Please fill in this form to create an account.</p>
+<div class="w3-container w3-third"></div>
+<div class="w3-container w3-third">
 
-        <hr>
-        <label for="Username"><b>Username:</b></label>
-        <input type="text" placeholder="Enter Username" name="username" required>
-        <br><br>
-        <label for="psw"><b>Password:</b></label>
-        <input type="password" placeholder="Enter Password" name="psw" required>
-        <br><br>
-        <label for="email"><b>Email:</b></label>
-        <input type="text" placeholder="Enter Email" name="email" required>
-        <br><br>
-        <label for="email"><b>Gender:</b></label>
-        <div class="w3-container  w3-cell">
-            <p>
+    <div class="w3-card-4 ">
+        <div class="w3-cell-middle">
 
-                <input class="w3-radio" type="radio" name="gender" value="male" checked>
-                <label>Male</label></p>
+            <div class="w3-panel  w3-theme">
+                <h1 class="w3-opacity w3-myfont w3-center">Register</h1>
+            </div>
+            <form class="w3-container" action="{{ url_for('register') }}" method="post" id="reg_form">
+                <div class="reg_container">
+
+                    <div class="w3-row w3-section">
+                        <div class="w3-display-container " style="height:5px;">
+                            <label class="w3-myfont">Username</label>
+                        </div>
+                    </div>
+                    <input class="w3-input" type="text" placeholder="Enter Username" name="username" required>
+
+                    <label for="psw"><b>Password:</b></label>
+                    <input class="w3-input" type="password" placeholder="Enter Password" name="psw" required>
+
+                    <label for="email"><b>Email:</b></label>
+                    <input class="w3-input" type="text" placeholder="Enter Email" name="email" required>
+
+                    <label for="email"><b>Gender:</b></label>
+                    <div class="w3-container  w3-cell">
+                        <p>
+
+                            <input class="w3-radio" type="radio" name="gender" value="male" checked>
+                            <label>Male</label></p>
+                    </div>
+                    <div class="w3-container w3-cell">
+                        <p>
+                            <input class="w3-radio" type="radio" name="gender" value="female">
+                            <label>Female</label></p>
+                    </div>
+                    <div class="w3-container  w3-cell">
+                        <p>
+                            <input class="w3-radio" type="radio" name="gender" value="Other">
+                            <label>Other</label></p>
+                    </div>
+
+                    <label for="email"><b>Location:</b></label>
+                    <input class="w3-input" type="text" placeholder="Enter Email" name="location" required>
+
+                    <label for="email"><b>First language:</b></label>
+                    <input class="w3-input" type="text" placeholder="Enter Email" name="firstlanguage" required>
+
+                    <label for="email"><b>Input language:</b></label>
+                    <input class="w3-input" type="text" placeholder="Enter Email" name="inputlanguage" required>
+
+
+
+                    <label for="email"><b>Age:</b></label>
+                    <input class="w3-input" type="text" placeholder="Enter Email" name="age" required>
+
+                    <hr>
+
+
+                    <button type="submit" class="w3-button w3-block w3-section w3-theme w3-ripple w3-padding"
+                        name="register">REGISTER</button>
+                </div>
+
+                <div class="container signin">
+                    <p>Already have an account? <a href="{{ url_for('login') }}">Login</a>.</p>
+                </div>
+
+            </form>
         </div>
-        <div class="w3-container w3-cell">
-            <p>
-                <input class="w3-radio" type="radio" name="gender" value="female">
-                <label>Female</label></p>
-        </div>
-        <div class="w3-container  w3-cell">
-            <p>
-                <input class="w3-radio" type="radio" name="gender" value="Other">
-                <label>Other</label></p>
-        </div>
-        <br><br>
-        <label for="email"><b>Location:</b></label>
-        <input type="text" placeholder="Enter Email" name="location" required>
-        <br><br>
-        <label for="email"><b>Language:</b></label>
-        <input type="text" placeholder="Enter Email" name="language" required>
-        <br><br>
-
-        <label for="email"><b>Age:</b></label>
-        <input type="text" placeholder="Enter Email" name="age" required>
-        <br><br>
-        <hr>
-
-        <button type="submit" class="btn btn-primary" name="register" onclick="">Register</button>
     </div>
-
-    <div class="container signin">
-        <p>Already have an account? <a href="{{ url_for('login') }}">Sign in</a>.</p>
-    </div>
-
-</form>
+</div>
 {% endblock %}

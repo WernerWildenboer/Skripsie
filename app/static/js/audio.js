@@ -36,9 +36,16 @@ function startRecording() {
     recorder && recorder.record();
     console.log('Recording...');
 
-    // Disable Record button and enable stop button !
-    document.getElementById("start-btn").disabled = true;
-    document.getElementById("stop-btn").disabled = false;
+
+    try {
+      // Disable Record button and enable stop button !
+      document.getElementById("start-btn").disabled = true;
+      document.getElementById("stop-btn").disabled = false;
+    }
+    catch (err) {
+
+    }
+
   }, function (e) {
     console.error('No live audio input: ' + e);
   });
@@ -53,8 +60,15 @@ function stopRecording(callback, AudioFormat) {
   audio_stream.getAudioTracks()[0].stop();
 
   // Disable Stop button and enable Record button !
-  document.getElementById("start-btn").disabled = false;
-  document.getElementById("stop-btn").disabled = true;
+  try {
+    // Handle on start recording button
+    document.getElementById("start-btn").disabled = false;
+    document.getElementById("stop-btn").disabled = true;
+  }
+  catch (err) {
+
+  }
+
 
   // Use the Recorder Library to export the recorder Audio as a .wav file
   // The callback providen in the stop recording method receives the blob
@@ -81,76 +95,156 @@ function stopRecording(callback, AudioFormat) {
 window.onload = function () {
   // Prepare and check if requirements are filled
   Initialize();
+  try {
+    // Handle on start recording button
+    document.getElementById("start-btn").addEventListener("click", function () {
+      startRecording();
+    }, false);
+  }
+  catch (err) {
+    document.getElementById("start-btn-v1").addEventListener("click", function () {
+      startRecording();
+    }, false);
+  }
 
-  // Handle on start recording button
-  document.getElementById("start-btn").addEventListener("click", function () {
-    startRecording();
-  }, false);
+  try {
+    // Handle on stop recording button
+    document.getElementById("stop-btn").addEventListener("click", function () {
+      // Use wav format
+      var _AudioFormat = "audio/wav";
+      // You can use mp3 to using the correct mimetype
+      //var AudioFormat = "audio/mpeg";
 
-  // Handle on stop recording button
-  document.getElementById("stop-btn").addEventListener("click", function () {
-    // Use wav format
-    var _AudioFormat = "audio/wav";
-    // You can use mp3 to using the correct mimetype
-    //var AudioFormat = "audio/mpeg";
+      stopRecording(function (AudioBLOB) {
+        // Note:
+        // Use the AudioBLOB for whatever you need, to download
+        // directly in the browser, to upload to the server, you name it !
 
-    stopRecording(function (AudioBLOB) {
-      // Note:
-      // Use the AudioBLOB for whatever you need, to download
-      // directly in the browser, to upload to the server, you name it !
+        // In this case we are going to add an Audio item to the list so you
+        // can play every stored Audio
+        var url = URL.createObjectURL(AudioBLOB);
+        var li = document.createElement('li');
+        var au = document.createElement('audio');
+        var hf = document.createElement('a');
 
-      // In this case we are going to add an Audio item to the list so you
-      // can play every stored Audio
-      var url = URL.createObjectURL(AudioBLOB);
-      var li = document.createElement('li');
-      var au = document.createElement('audio');
-      var hf = document.createElement('a');
-
-      au.controls = true;
-      au.src = url;
-      hf.href = url;
-      // Important:
-      // Change the format of the file according to the mimetype
-      // e.g for audio/wav the extension is .wav 
-      //     for audio/mpeg (mp3) the extension is .mp3
-      var username = document.getElementById("username").innerHTML;
-      var image_title = document.getElementById("title").innerHTML;
-      hf.download = username + "_" + image_title + "_" + new Date().toISOString() + '.wav';
-      console.log(hf.download);
-      hf.innerHTML = hf.download;
-      hf.setAttribute("id", "to_click");
-      li.appendChild(au);
-      li.appendChild(hf);
-      li.click();
-      recordingslist.appendChild(li);
+        au.controls = true;
+        au.src = url;
+        hf.href = url;
+        // Important:
+        // Change the format of the file according to the mimetype
+        // e.g for audio/wav the extension is .wav 
+        //     for audio/mpeg (mp3) the extension is .mp3
+        var username = document.getElementById("username").innerHTML;
+        var image_title = document.getElementById("title").innerHTML;
+        hf.download = username + "_" + image_title + "_" + new Date().toISOString() + '.wav';
+        //console.log(hf.download);
+        hf.innerHTML = hf.download;
+        hf.setAttribute("id", "to_click");
+        li.appendChild(au);
+        li.appendChild(hf);
+        li.click();
+        recordingslist.appendChild(li);
 
 
-      //TODO:
-      //Enable to allow auto download to downloads folder
-      //document.getElementById('to_click').click();
-      //var upload = document.getElementById('to_click');
+        //TODO:
+        //Enable to allow auto download to downloads folder
+        //document.getElementById('to_click').click();
+        //var upload = document.getElementById('to_click');
 
-      /*================ Send Bolb*/
+        /*================ Send Bolb*/
 
-      /*upload.addEventListener("click", function (event) {
-        var xhr = new XMLHttpRequest();
-        xhr.onload = function (e) {
-          if (this.readyState === 4) {
-            console.log("Server returned: ", e.target.responseText);
-          }
-        };
-        var fd = new FormData();
+        /*upload.addEventListener("click", function (event) {
+          var xhr = new XMLHttpRequest();
+          xhr.onload = function (e) {
+            if (this.readyState === 4) {
+              console.log("Server returned: ", e.target.responseText);
+            }
+          };
+          var fd = new FormData();
+    
+          var filename = new Date().toISOString();
+    
+          fd.append("audio_data", AudioBLOB, filename);
+          xhr.open("POST", "/uploadfile", true);
+          xhr.send(fd);
+        })*/
+        submit(AudioBLOB);
+        /*================ Send Bolb*/
+      }, _AudioFormat);
+    }, false);
+  }
+  catch (err) {
+    // Handle on stop recording button
+    document.getElementById("stop-btn-v1").addEventListener("click", function () {
+      // Use wav format
+      var _AudioFormat = "audio/wav";
+      // You can use mp3 to using the correct mimetype
+      //var AudioFormat = "audio/mpeg";
 
-        var filename = new Date().toISOString();
+      stopRecording(function (AudioBLOB) {
+        // Note:
+        // Use the AudioBLOB for whatever you need, to download
+        // directly in the browser, to upload to the server, you name it !
 
-        fd.append("audio_data", AudioBLOB, filename);
-        xhr.open("POST", "/uploadfile", true);
-        xhr.send(fd);
-      })*/
-      submit(AudioBLOB);
-      /*================ Send Bolb*/
-    }, _AudioFormat);
-  }, false);
+        // In this case we are going to add an Audio item to the list so you
+        // can play every stored Audio
+        var url = URL.createObjectURL(AudioBLOB);
+        var li = document.createElement('li');
+        var au = document.createElement('audio');
+        var hf = document.createElement('a');
+
+        au.controls = true;
+        au.src = url;
+        hf.href = url;
+        // Important:
+        // Change the format of the file according to the mimetype
+        // e.g for audio/wav the extension is .wav 
+        //     for audio/mpeg (mp3) the extension is .mp3
+        var username = document.getElementById("username").innerHTML;
+        var image_title = document.getElementById("title").innerHTML;
+        hf.download = username + "_" + image_title + "_" + new Date().toISOString() + '.wav';
+        //console.log(hf.download);
+        hf.innerHTML = hf.download;
+        hf.setAttribute("id", "to_click");
+        li.appendChild(au);
+        li.appendChild(hf);
+        li.click();
+        recordingslist.appendChild(li);
+
+
+        //TODO:
+        //Enable to allow auto download to downloads folder
+        //document.getElementById('to_click').click();
+        //var upload = document.getElementById('to_click');
+
+        /*================ Send Bolb*/
+
+        /*upload.addEventListener("click", function (event) {
+          var xhr = new XMLHttpRequest();
+          xhr.onload = function (e) {
+            if (this.readyState === 4) {
+              console.log("Server returned: ", e.target.responseText);
+            }
+          };
+          var fd = new FormData();
+    
+          var filename = new Date().toISOString();
+    
+          fd.append("audio_data", AudioBLOB, filename);
+          xhr.open("POST", "/uploadfile", true);
+          xhr.send(fd);
+        })*/
+        submit(AudioBLOB);
+        startRecording();
+        /*================ Send Bolb*/
+      }, _AudioFormat);
+    }, false);
+  }
+
+
+
+
+
 };
 
 function submit(blob) {
@@ -177,7 +271,7 @@ function submit(blob) {
       contentType: false,
       enctype: false
     }).done(function (data) {
-      console.log(data);
+      console.log("Done");
     });
   }
 

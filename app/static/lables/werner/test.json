@@ -1,0 +1,80 @@
+{
+    "annotation_events": [
+        {
+            "event": "start-to-create",
+            "region_id": "wavesurfer_jcim59ag2j8",
+            "time": 1570100599238
+        },
+        {
+            "event": "offline-create",
+            "region_end": 2.544443046722235,
+            "region_id": "wavesurfer_jcim59ag2j8",
+            "region_start": 1.8435796659089168,
+            "time": 1570100599831
+        },
+        {
+            "event": "add-annotation-label",
+            "region_id": "wavesurfer_jcim59ag2j8",
+            "region_label": "man",
+            "time": 1570100601612
+        },
+        {
+            "event": "change-annotation-label",
+            "region_id": "wavesurfer_jcim59ag2j8",
+            "region_label": "Hello",
+            "time": 1570100603060
+        },
+        {
+            "event": "add-proximity-label",
+            "region_id": "wavesurfer_jcim59ag2j8",
+            "region_label": "near",
+            "time": 1570100604542
+        }
+    ],
+    "annotations": [
+        {
+            "annotation": "Hello",
+            "end": 2.544443046722235,
+            "id": "wavesurfer_jcim59ag2j8",
+            "proximity": "near",
+            "start": 1.8435796659089168
+        }
+    ],
+    "deleted_annotations": [],
+    "final_solution_shown": false,
+    "play_events": [
+        {
+            "audioSourceTime": 0,
+            "event": "spacebar-play",
+            "time": 1570088001067
+        },
+        {
+            "audioSourceTime": 2.8908843537415123,
+            "event": "click-pause",
+            "time": 1570088003955
+        },
+        {
+            "audioSourceTime": 2.8908843537415123,
+            "event": "spacebar-play",
+            "time": 1570088004563
+        },
+        {
+            "audioSourceTime": 3.6455328798185747,
+            "event": "spacebar-pause",
+            "time": 1570088005315
+        },
+        {
+            "audioSourceTime": 3.645532879818574,
+            "event": "spacebar-play",
+            "time": 1570088648714
+        },
+        {
+            "audioSourceTime": 3.8126468956376898,
+            "event": "click-pause",
+            "time": 1570088651581
+        }
+    ],
+    "task_end_time": 1570100606075,
+    "task_start_time": 1570087746948,
+    "visualization": "spectrogram"
+}
