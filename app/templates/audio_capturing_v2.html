@@ -65,9 +65,18 @@
     <div class="photo-wrapper w3-border w3-padding">
       <img class="photo w3-animate-right" />
     </div>
+    <button type="button" class="w3-btn w3-left collapsible fas fa-sort-down"></button>
+
     <div class="photo-caption">
       <div class="title" id="title"></div>
       <div class="data"></div>
+    </div>
+
+    <div class="w3-container content">
+      <div class="photo-caption">
+        <div class="title" id="title"></div>
+        <div class="data"></div>
+      </div>
     </div>
   </div>
 </div>
@@ -134,6 +143,20 @@
 
   function closeRightMenu() {
     document.getElementById("rightMenu").style.display = "none";
+  }
+  var coll = document.getElementsByClassName("collapsible");
+  var i;
+
+  for (i = 0; i < coll.length; i++) {
+    coll[i].addEventListener("click", function () {
+      this.classList.toggle("active");
+      var content = this.nextElementSibling;
+      if (content.style.display === "block") {
+        content.style.display = "none";
+      } else {
+        content.style.display = "block";
+      }
+    });
   }
 </script>
 {% endblock %}
